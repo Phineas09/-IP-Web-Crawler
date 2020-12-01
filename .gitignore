@@ -1,2 +1,8 @@
+WebCrawler/out/
+WebCrawler/.idea/
+.idea_modules/
+*.iml
+*.ipr
+*.iws
 
 
