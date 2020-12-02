@@ -1,6 +1,7 @@
 WebCrawler/out/
 WebCrawler/.idea/
 .idea_modules/
+WebCrawler/.idea/workspace.xml
 *.iml
 *.ipr
 *.iws
