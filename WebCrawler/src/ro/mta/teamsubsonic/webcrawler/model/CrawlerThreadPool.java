@@ -27,10 +27,16 @@ public class CrawlerThreadPool {
      * Private constructor for Singleton pattern
      * requires Configurations class
      *
+     * @throws InternalException if thread Pool fails to initialize or Configurations class was not initialized
      */
-    private CrawlerThreadPool() {
-        threadPool = Executors.newFixedThreadPool(Configurations.getInstance().getThreadsNumber());
-        currentExecutingTasks = 0;
+    private CrawlerThreadPool() throws InternalException {
+        try {
+            threadPool = Executors.newFixedThreadPool(Configurations.getInstance().getThreadsNumber());
+            currentExecutingTasks = 0;
+        }
+        catch (Exception exception) {
+            throw new InternalException("Configurations class was not initialized!");
+        }
     }
 
     /**
