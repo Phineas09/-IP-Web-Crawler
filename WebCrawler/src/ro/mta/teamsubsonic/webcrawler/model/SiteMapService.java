@@ -35,7 +35,7 @@ public class SiteMapService implements Crawler {
     }
 
     /**
-     * Class that creates the sitemap
+     * Class that creates the sitemap and writes it to outFile
      **/
     @Override
     public void run() {
