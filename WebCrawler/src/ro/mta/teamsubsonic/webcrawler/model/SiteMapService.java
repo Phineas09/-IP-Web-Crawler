@@ -18,7 +18,7 @@ import java.util.List;
 public class SiteMapService implements Crawler {
 
     /**
-     * Members of the function
+     * Members of the class
      */
     private String path;
     private String outFile;
