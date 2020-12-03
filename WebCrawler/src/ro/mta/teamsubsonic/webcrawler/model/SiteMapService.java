@@ -13,6 +13,7 @@ import java.util.List;
 /**
  * Class that makes a sitemap
  * Implements {@link Crawler}
+ * @author VladTeapa
  */
 public class SiteMapService implements Crawler {
 
