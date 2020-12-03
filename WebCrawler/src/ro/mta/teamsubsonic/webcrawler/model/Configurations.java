@@ -1,19 +1,19 @@
 package ro.mta.teamsubsonic.webcrawler.model;
 
-import org.json.JSONException;
-import org.json.JSONObject;
+import ro.mta.teamsubsonic.webcrawler.model.exceptions.CrawlerException;
 import ro.mta.teamsubsonic.webcrawler.model.exceptions.FileException;
 import ro.mta.teamsubsonic.webcrawler.model.exceptions.InputException;
 import ro.mta.teamsubsonic.webcrawler.model.exceptions.InternalException;
 
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.util.HashMap;
 import java.util.Scanner;
 
 /**
  * Class that contains the configuration for Crawl
  * Pattern used: Singleton
  * In case you don't have a configuration file you can always use a default one
+ *
  * @author VladTeapa
  */
 
@@ -59,16 +59,16 @@ public class Configurations {
      * @throws Exception
      */
 
-    public static Configurations getInstance(String configFileLocation) throws Exception {
+    public static Configurations getInstance(String configFileLocation) throws CrawlerException {
         try {
             if (instance == null)
                 instance = new Configurations();
             reconfigure(configFileLocation);
             return instance;
-        } catch (FileNotFoundException ex) {
-            throw new FileException("File not found!");
-        } catch (JSONException ex) {
-            throw new InputException("File not correct!");
+        } catch (InputException ex) {
+            throw new InputException("Bad config file");
+        } catch (Exception ex) {
+            throw new FileException("Bad file name");
         }
     }
 
@@ -80,35 +80,43 @@ public class Configurations {
      */
     private static void reconfigure(String configFileLocation) throws Exception {
 
+        instance.threadsNumber = 4;
+        instance.delay = 20;
+        instance.depthLevel = 4;
+        instance.logFile = "log.txt";
+        instance.logLevel = 2;
+        instance.targetDirectory = "out";
+        instance.configFileLocation = null;
         if (configFileLocation == null) {
-            instance.threadsNumber = 4;
-            instance.delay = 20;
-            instance.depthLevel = 4;
-            instance.logFile = "log.txt";
-            instance.logLevel = 2;
-            instance.targetDirectory = "out";
-            instance.configFileLocation = null;
             return;
         }
 
-        JSONObject jsonObject;
-
         File file = new File(configFileLocation);
         Scanner scanner = new Scanner(file);
-        StringBuilder fileData = new StringBuilder();
+        String fileData = null;
+        HashMap<String, String> hashMap = new HashMap<>();
+
 
         while (scanner.hasNextLine()) {
-            fileData.append(scanner.nextLine());
+            fileData = scanner.nextLine();
+            String[] fields = fileData.split("=");
+            if (fields.length != 2)
+                throw new InputException("");
+            hashMap.put(fields[0], fields[1]);
         }
 
-        jsonObject = new JSONObject(fileData);
-
-        instance.threadsNumber = jsonObject.getInt("threadsNumber");
-        instance.delay = jsonObject.getDouble("delay");
-        instance.depthLevel = jsonObject.getInt("depthLevel");
-        instance.logFile = jsonObject.getString("logFile");
-        instance.targetDirectory = jsonObject.getString("targetDirectory");
-        instance.logLevel = jsonObject.getInt("logLevel");
+        if (hashMap.containsKey("threadsNumber"))
+            instance.threadsNumber = Integer.parseInt(hashMap.get("threadsNumber"));
+        if (hashMap.containsKey("delay"))
+            instance.delay = Double.parseDouble(hashMap.get("delay"));
+        if (hashMap.containsKey("depthLevel"))
+            instance.depthLevel = Integer.parseInt(hashMap.get("depthLevel"));
+        if (hashMap.containsKey("logFile"))
+            instance.logFile = hashMap.get("logFile");
+        if (hashMap.containsKey("targetDirectory"))
+            instance.targetDirectory = hashMap.get("targetDirectory");
+        if (hashMap.containsKey("logLevel"))
+            instance.logLevel = Integer.parseInt(hashMap.get("logLevel"));
         instance.configFileLocation = configFileLocation;
 
     }
