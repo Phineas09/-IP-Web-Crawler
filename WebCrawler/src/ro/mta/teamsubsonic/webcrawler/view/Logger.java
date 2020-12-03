@@ -10,7 +10,7 @@ import java.io.IOException;
  *
  * @author Panțucu Flavius
  */
-public class Logger
+class Logger
 {
     /**
      * Member decription
