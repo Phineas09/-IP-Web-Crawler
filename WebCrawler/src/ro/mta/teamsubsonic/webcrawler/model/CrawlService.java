@@ -8,20 +8,12 @@ import ro.mta.teamsubsonic.webcrawler.model.exceptions.InternalException;
 import java.util.ArrayList;
 import java.util.List;
 
-//TO DO -> REMOVE
-/*CrawlerService : Crawler (Model) - aceasta este o clasa ce
-        implementează interfața Crawler ce va fi responsabilă de inițializarea
-        clasei CrawlerThreadPool (Singleton) și de descărcarea site-urilor
-        web solicitate de utilizator.
-        o Membrii:
-        ▪ urls – este o listă de URL-uri furnizate de către utilizator
-        ce trebuie descărcate.
-        o Metode:
-        ▪ run – metodă ce va inițializa thread pool-ul, va începe
-        descărcarea paginilor, specificând locația pentru
-        descărcare și va aștepta ca toate task-urile din coada poolului să se finalizeze.
-*/
-
+/**
+ * Class that implements interface Crawler.
+ * Responsible for generating Task Objects and pushing them into the thread pool
+ *
+ * @author Florea Vlad
+ */
 public class CrawlService implements Crawler {
 private List<String> urls;
     @Override
