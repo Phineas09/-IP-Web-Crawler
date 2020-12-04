@@ -1,4 +1,4 @@
-package ro.mta.teamsubsonic.webcrawler.model.exceptions;
+package ro.mta.teamsubsonic.webcrawler.model;
 
 import ro.mta.teamsubsonic.webcrawler.model.Crawler;
 

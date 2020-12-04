@@ -1,8 +1,6 @@
 package ro.mta.teamsubsonic.webcrawler.model;
 
 
-import ro.mta.teamsubsonic.webcrawler.model.exceptions.CrawlTask;
-import ro.mta.teamsubsonic.webcrawler.model.exceptions.Factory;
 import ro.mta.teamsubsonic.webcrawler.model.exceptions.InternalException;
 
 import java.util.ArrayList;
