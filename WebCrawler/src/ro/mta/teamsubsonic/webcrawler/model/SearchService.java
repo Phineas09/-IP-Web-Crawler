@@ -5,6 +5,7 @@ import java.io.*;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 /**
  * Class implementing the search part of WebCrawler application.
  * Implements the search function with the afferent rules which the application
