@@ -1,6 +1,6 @@
 package ro.mta.teamsubsonic.webcrawler.model;
-import ro.mta.teamsubsonic.webcrawler.model.exceptions._CrawlerException;
 
+import ro.mta.teamsubsonic.webcrawler.model.exceptions._CrawlerException;
 import java.io.*;
 import java.util.*;
 import java.util.regex.Matcher;
