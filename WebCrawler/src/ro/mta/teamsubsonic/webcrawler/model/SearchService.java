@@ -1,6 +1,7 @@
 package ro.mta.teamsubsonic.webcrawler.model;
-
 import ro.mta.teamsubsonic.webcrawler.model.exceptions._CrawlerException;
+import ro.mta.teamsubsonic.webcrawler.view.Logger;
+
 import java.io.*;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -83,7 +84,7 @@ public class SearchService implements Crawler {
     @Override
     public void run(){
         ArrayList<CrawlFile> searchFiles = new ArrayList<>();
-        ArrayList<String> toBePrinted = new ArrayList<>();
+        String toBePrinted = new String();
 
         getFiles(path,searchFiles);
 
@@ -115,8 +116,11 @@ public class SearchService implements Crawler {
                 if(flagExtension != true)
                     continue;
             }
-            toBePrinted.add(file.filePath);
+            toBePrinted += file.filePath;
+            toBePrinted += "\n";
         }
+        Logger instance = Logger.getInstance();
+        instance.write(toBePrinted,0);
     }
     /**
      * SearchService class constructor
