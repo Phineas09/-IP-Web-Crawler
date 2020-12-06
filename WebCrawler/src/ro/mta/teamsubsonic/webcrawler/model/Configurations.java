@@ -73,7 +73,7 @@ public class Configurations {
      * Function that configures the instance and in case there isn't a config file, it gives a default configuration
      *
      * @param configFileLocation it can be null for a default configuration
-     * @throws Exception
+     * @throws Exception which will be translated into another type of Exception
      */
     private static void reconfigure(String configFileLocation) throws Exception {
 
