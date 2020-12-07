@@ -140,5 +140,6 @@ public class SearchService implements Crawler {
         this.maxSize = _maxsize;
         this.pattern = _pattern;
         this.path = _path;
+
     }
 }
