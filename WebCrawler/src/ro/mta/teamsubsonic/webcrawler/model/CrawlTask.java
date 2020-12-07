@@ -1,8 +1,6 @@
 package ro.mta.teamsubsonic.webcrawler.model;
 
 import ro.mta.teamsubsonic.webcrawler.model.exceptions.*;
-
-import java.awt.*;
 import java.io.*;
 import java.net.URI;
 import java.net.URL;
@@ -17,21 +15,22 @@ import java.util.regex.Pattern;
 
 /**
  * Class that extends abstract class Task
- * This class is responsible for:->recursive downloads web pages from the received url
- *                               ->testing url references
- *                               ->starting tasks that will download the found references
- *                               ->replacing the references with the local path.
+ * This class is responsible for: * recursive downloads web pages from the received url
+ *                                * testing url references
+ *                                * starting tasks that will download the found references
+ *                                * replacing the references with the local path.
  * @author Gunyx
  * @author Phineas09
  */
 public class CrawlTask extends Task {
 
-    /**
-     * Members of class description
-     */
+    /** It is the taskId of the currently executing task in the threadPool and also represents the depth of the crawl */
     private final int taskId;
+    /** It is the url that will be downloaded by this task */
     private final String url;
+    /** It is the target path in the file system where the current url will be stored */
     private String targetPath;
+    /** Is root path in the file system where, we will download the page */
     private final String targetRoot;
 
     /**
@@ -62,14 +61,42 @@ public class CrawlTask extends Task {
     }
 
     /**
+     * Returns a resolved string with the destination of the next reference.
+     * @param refType type of the reference ( anchor, image, script or link).
+     * @param url the url that needs to be resolved.
+     * @param baseUrl the base url for given website
+     * @return a string containing the path in the system for current url.
+     * @throws CrawlerException exception if the resolve will fail.
+     */
+    private String resolveHtml(String refType, String url, String baseUrl) throws CrawlerException {
+
+        String resolvedString = this.targetRoot;
+
+        String customPath = url.substring(baseUrl.length() + 1, url.length());
+        customPath = customPath.replaceAll("/", "_");
+
+        switch (refType) {
+            case "script" -> resolvedString = resolvedString + "/scripts/";
+            case "img" -> resolvedString = resolvedString + "/images/";
+            case "a" -> resolvedString = resolvedString + "/pages/";
+            case "link" -> resolvedString = resolvedString + "/css/";
+            default -> throw new InternalException("This should never throw @CrawlTask.resolveHTML!");
+        }
+        return resolvedString + customPath;
+    }
+
+    /**
      * Parses a given web page for refs ( a | img | script | link ).
      *
      * @param webPage a web page in String format.
-     * @return A HashMap of links and destinations to be downloaded and replaced.
+     * @return A HashMap of links and array of original link to be replaced and the target path to be downloaded in.
      * @throws CrawlerException exception if parsing will fail.
      */
-    private HashMap<String,String> parsePageHtml(String webPage) throws CrawlerException {
+    private HashMap<String, String[]> parsePageHtml(String webPage) throws CrawlerException {
+
         try {
+            //This function is too big @! maybe improve here
+
             String baseUrl = "https://" + (new URI(this.url)).getHost();
             //Or make another variable to hold this information
 
@@ -80,57 +107,47 @@ public class CrawlTask extends Task {
 
             //Used for detecting paths from internal url
                 Pattern internalPattern = Pattern.compile("^\\.?(?:\\.{2})?(?:\\/\\.{2})*(\\/?[\\w\\d-\\.\\*]+)+",
-            //Pattern internalPattern = Pattern.compile("^\\.?(?:\\.{2})?(?:\\/\\.{2})*(\\/.+)+",
                     Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 
-            HashMap<String, String> returnHash = new HashMap<>();
-
+            HashMap<String, String[]> returnHash = new HashMap<>();
             Matcher pageMatcher = referencesPattern.matcher(webPage);
-            ArrayList<String> links = new ArrayList<>();
+            int indexOf = 0;
+
             while (pageMatcher.find()) {
 
                 String newUrl = pageMatcher.group(7);
+
+                if(newUrl.equals(baseUrl + "/") || newUrl.equals(baseUrl))
+                    continue;
+
                 if (newUrl.regionMatches(true, 0, baseUrl, 0, baseUrl.length())) {
+
                     //If the reference is a website part of same domain
-                    links.add(newUrl);
+                    //We can have arguments inside this uris, remove them
+                    if((indexOf = newUrl.indexOf("?")) != -1) {
+                        newUrl = newUrl.substring(0, indexOf);
+                    }
+
+                    //We will not try to download the .php files
+                    if(!newUrl.endsWith(".php")) {
+                        returnHash.putIfAbsent(newUrl, new String[]{newUrl,
+                                resolveHtml(pageMatcher.group(2), newUrl, baseUrl)});
+                    }
                 }
                 else {
                     Matcher pathMatcher = internalPattern.matcher(newUrl);
                     if(pathMatcher.find() && newUrl.equals(pathMatcher.group())) {
                         //If it is a reference inside the root dir
-                        newUrl = baseUrl + newUrl;
-                        //Check if is not .php
-
-                        //System.out.print("Internal path ");
-                    } else
-                        continue;
-                }
-
-                    String refType = pageMatcher.group(2);
-                    /*
-                    switch (refType) {
-                        case "script" -> System.out.print("Script ");
-                        case "img" -> System.out.print("Image ");
-                        case "a" -> System.out.print("Anchor ");
-                        case "link" -> System.out.print("Css or others ");
-                        default -> System.out.print("Error ");
+                        String tempUrl = baseUrl + newUrl;
+                        //We will not try to download the .php files
+                        if(!tempUrl.endsWith(".php")) {
+                            returnHash.putIfAbsent(tempUrl, new String[]{newUrl,
+                                    resolveHtml(pageMatcher.group(2), tempUrl, baseUrl)});
+                        }
                     }
-*/
-
-                    //System.out.println(newUrl);
-
-                    //CrawlerThreadPool.getInstance().putTask(new CrawlTask(this.taskId + 1, newUrl, ));
-
-                //https://mta.ro/about-us | targetPath + "/page" + "/about-us.html"
-                //links.add(pageMatcher.group());
-
+                }
             }
-            System.out.println(links.size());
-            for(var a : links) {
-                System.out.println(a);
-            }
-
-            return new HashMap<>();
+            return returnHash;
         }
         catch (Exception exception) {
             throw new InternalException("Web page does not exist!");
@@ -179,7 +196,20 @@ public class CrawlTask extends Task {
      */
     private boolean testTask() {
         try {
+
+            /** If the next task will surpass depth we will not run the next task
+             * And remove the references to be changed by replaceHtmlRefs
+             * We will also test if the page has already been downloaded via resolveHtml function
+             * and some tests on the file system with the help of this.targetPath and this.targetRoot
+             */
+
             Configurations confInstance = Configurations.getInstance();
+
+            //TODO: See if it has already been downloaded
+
+            //TODO: Check for depth level
+
+            //TODO: Remove from HashMap if necessary, HashMap will be given as param
 
             int depthLv=confInstance.getDepthLevel();
             if((url==null)||(targetPath==null))
@@ -305,7 +335,12 @@ public class CrawlTask extends Task {
                 this.targetPath = this.targetRoot + "/index.html";
             }
             //startTasks(parsePageHtml());
-            parsePageHtml(downloadPage());
+            HashMap<String, String[]> hashMap =  parsePageHtml(downloadPage());
+
+            for(String key : hashMap.keySet()) {
+                System.out.println(key + " -> " + hashMap.get(key)[0] + " - " + hashMap.get(key)[1]);
+            }
+
             //replaceHTMLRef();
             /**
              *
