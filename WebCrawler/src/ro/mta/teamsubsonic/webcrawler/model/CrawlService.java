@@ -2,6 +2,8 @@ package ro.mta.teamsubsonic.webcrawler.model;
 
 
 import ro.mta.teamsubsonic.webcrawler.model.exceptions.InternalException;
+import ro.mta.teamsubsonic.webcrawler.model.exceptions._CrawlerException;
+import ro.mta.teamsubsonic.webcrawler.view.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +15,18 @@ import java.util.List;
  * @author Florea Vlad
  */
 public class CrawlService implements Crawler {
-private List<String> urls;
+    private static final int STARTINDEX=0;
+
+    private List<String> urls;
+    /**
+     * Run method.
+     *  Gets the threadPool instance
+     *  Creates a list with the url.
+     *  Creates the appropriate task (i.e. CrawlTask) through a factory object.
+     *  Puts it in the threadPoolInstance.
+     *
+     *  ONE TASK for each URL.
+     */
     @Override
     public void run(){
         try {
@@ -22,7 +35,19 @@ private List<String> urls;
             for(String url : urls){
                 Factory factory= new Factory();
                 List<String> args= new ArrayList<>();
+
+                /**
+                 * Always start at index 0
+                 */
+                args.add(String.valueOf(STARTINDEX));
+                /**
+                 * Target url
+                 */
                 args.add(url);
+                /**
+                 * Target directory
+                 */
+                args.add(Configurations.getInstance().getTargetDirectory());
 
                 Task urlTask = factory.createTask(CrawlTask.class,args);
 
@@ -30,8 +55,8 @@ private List<String> urls;
             }
 
         }
-        catch(InternalException e){
-            //TO DO: Log error
+        catch(_CrawlerException e){
+            e.getMessage();
 
         }
     }
