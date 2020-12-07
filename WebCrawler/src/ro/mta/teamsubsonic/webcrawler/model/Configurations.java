@@ -1,9 +1,6 @@
 package ro.mta.teamsubsonic.webcrawler.model;
 
-import ro.mta.teamsubsonic.webcrawler.model.exceptions.CrawlerException;
-import ro.mta.teamsubsonic.webcrawler.model.exceptions.FileException;
-import ro.mta.teamsubsonic.webcrawler.model.exceptions.InputException;
-import ro.mta.teamsubsonic.webcrawler.model.exceptions.InternalException;
+import ro.mta.teamsubsonic.webcrawler.model.exceptions.*;
 
 import java.io.File;
 import java.util.HashMap;
@@ -42,9 +39,9 @@ public class Configurations {
      * Function that returns the instance to Configurations (must not call this one to initialize)
      *
      * @return return reference to object
-     * @throws Exception
+     * @throws _CrawlerException
      */
-    public static Configurations getInstance() throws Exception {
+    public static Configurations getInstance() throws _CrawlerException {
         if (instance == null) {
             throw new InternalException("Configurations not initialized! Call the other getInstance first!");
         }
@@ -56,10 +53,10 @@ public class Configurations {
      *
      * @param configFileLocation it can be null for a default configuration
      * @return return the reference to object
-     * @throws Exception
+     * @throws _CrawlerException
      */
 
-    public static Configurations getInstance(String configFileLocation) throws CrawlerException {
+    public static Configurations getInstance(String configFileLocation) throws _CrawlerException {
         try {
             if (instance == null)
                 instance = new Configurations();
@@ -76,7 +73,7 @@ public class Configurations {
      * Function that configures the instance and in case there isn't a config file, it gives a default configuration
      *
      * @param configFileLocation it can be null for a default configuration
-     * @throws Exception
+     * @throws Exception which will be translated into another type of Exception
      */
     private static void reconfigure(String configFileLocation) throws Exception {
 
