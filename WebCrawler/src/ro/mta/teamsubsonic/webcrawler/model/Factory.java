@@ -73,47 +73,47 @@ public class Factory {
      *
      */
     public Task createTask (Class<?> type, List<String> args) throws  _CrawlerException{
-            if(type == CrawlTask.class) {
-                /**
-                 * Verifying the number of args
-                 */
-                if (args.size() != createCrawlTaskArgsCount) {
-                    throw new InternalException("Wrong number of arguments to create CrawlTask. Expected " + createCrawlTaskArgsCount + " received " + args.size());
-                }
-                int taskId;
-                /**
-                 * Verifying the Id
-                 */
-                try {
-                    taskId= Integer.parseInt(args.get(0));
-                }
-                catch (NumberFormatException e)
-                {
-                    throw new InternalException("Bad task Id. Not a number.");
-                }
-                /**
-                 * Verifying the URL
-                 */
-                if(!checkUrl(args.get(1))){
-                    throw new BadURIException("Bad URI format:"+ args.get(1)+" .This is not a URI!");
-                }
-                /**
-                 * Check if the path exists.
-                 */
+        if(type == CrawlTask.class) {
+            /**
+             * Verifying the number of args
+             */
+            if (args.size() != createCrawlTaskArgsCount) {
+                throw new InternalException("Wrong number of arguments to create CrawlTask. Expected " + createCrawlTaskArgsCount + " received " + args.size());
+            }
+            int taskId;
+            /**
+             * Verifying the Id
+             */
+            try {
+                taskId= Integer.parseInt(args.get(0));
+            }
+            catch (NumberFormatException e)
+            {
+                throw new InternalException("Bad task Id. Not a number.");
+            }
+            /**
+             * Verifying the URL
+             */
+            if(!checkUrl(args.get(1))){
+                throw new BadURIException("Bad URI format:"+ args.get(1)+" .This is not a URI!");
+            }
+            /**
+             * Check if the path exists.
+             */
 
-                int pathCheck= checkPath(args.get(2));
-                if(pathCheck == BADPATH){
-                    throw new InputException("Folder target path:"+args.get(2)+" is not a valid path on your OS!");
-
-                }
-                if(pathCheck == ISAFILE){
-                    throw  new InputException("Selected target path:"+args.get(2)+" Is not a directory!");
-                }
-
-                CrawlTask retCrawlTask = new CrawlTask(taskId,args.get(1),args.get(2));
-                return retCrawlTask;
+            int pathCheck= checkPath(args.get(2));
+            if(pathCheck == BADPATH){
+                throw new InputException("Folder target path:"+args.get(2)+" is not a valid path on your OS!");
 
             }
+            if(pathCheck == ISAFILE){
+                throw  new InputException("Selected target path:"+args.get(2)+" Is not a directory!");
+            }
+
+            CrawlTask retCrawlTask = new CrawlTask(taskId,args.get(1),args.get(2));
+            return retCrawlTask;
+
+        }
         throw new InternalException("Trying to create a wrong type of Task!");
     }
 
@@ -142,23 +142,23 @@ public class Factory {
              * Check to see if number of args matches
              */
             if(args.size() != createSiteMapArgsCount){
-                 throw new InternalException("Wrong number of arguments to create SiteMapService. Expected " + createSiteMapArgsCount + " received " + args.size());
-             }
+                throw new InternalException("Wrong number of arguments to create SiteMapService. Expected " + createSiteMapArgsCount + " received " + args.size());
+            }
             /**
              * Check to see if the path given is valid.
              */
-                String Path = args.get(0);
-                int retCode =checkPath(Path);
-                if(retCode!= ISAFILE){
-                    if(retCode == ISADIR){
-                        throw new InputException("The given path to site's root file is a directory:"+Path);
-                    }
-                    else{
-                        throw new InputException("The given path to site's root file is not valid:"+Path);
-                    }
+            String Path = args.get(0);
+            int retCode =checkPath(Path);
+            if(retCode!= ISAFILE){
+                if(retCode == ISADIR){
+                    throw new InputException("The given path to site's root file is a directory:"+Path);
                 }
+                else{
+                    throw new InputException("The given path to site's root file is not valid:"+Path);
+                }
+            }
 
-           return new SiteMapService(args.get(0),args.get(1));
+            return new SiteMapService(args.get(0),args.get(1));
         }
         if(type == SearchService.class){
 
@@ -188,7 +188,7 @@ public class Factory {
             }
             String pattern = args.get(3);
 
-            return  new SearchService(extensions,keyword,maxSize,pattern);
+            //return  new SearchService(extensions,keyword,maxSize,pattern);
 
         }
 

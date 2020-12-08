@@ -14,7 +14,7 @@ public class WebCrawler {
             CrawlerThreadPool crawlerThreadPool = CrawlerThreadPool.getInstance();
 
             crawlerThreadPool.putTask(new CrawlTask(0, "https://github.com/Phineas09/-IP-Web-Crawler",
-                    "tests/mta.ro/index.html"));
+                    "tests/mta.ro"));
 
             while(crawlerThreadPool.threadSafeUpdatePoolCount(0) != 0) {
                 Thread.sleep(1000);

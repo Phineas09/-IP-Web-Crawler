@@ -1,6 +1,8 @@
 package ro.mta.teamsubsonic.webcrawler.model;
 
 import ro.mta.teamsubsonic.webcrawler.model.exceptions.*;
+
+import javax.sound.midi.SysexMessage;
 import java.io.*;
 import java.net.URI;
 import java.net.URL;
@@ -24,19 +26,28 @@ import java.util.regex.Pattern;
  */
 public class CrawlTask extends Task {
 
-    /** It is the taskId of the currently executing task in the threadPool and also represents the depth of the crawl */
+    /**
+     * It is the taskId of the currently executing task in the threadPool and also represents the depth of the crawl
+     */
     private final int taskId;
-    /** It is the url that will be downloaded by this task */
+    /**
+     * It is the url that will be downloaded by this task
+     */
     private final String url;
-    /** It is the target path in the file system where the current url will be stored */
+    /**
+     * It is the target path in the file system where the current url will be stored
+     */
     private String targetPath;
-    /** Is root path in the file system where, we will download the page */
+    /**
+     * Is root path in the file system where, we will download the page
+     */
     private final String targetRoot;
 
     /**
      * Constructor of class
-     * @param taskId -> which identifies the current task id.It is also used to identify the depth of recursion
-     * @param url -> contains the url from which the information is downloaded
+     *
+     * @param taskId     -> which identifies the current task id.It is also used to identify the depth of recursion
+     * @param url        -> contains the url from which the information is downloaded
      * @param targetRoot -> contains the path where the information is downloaded.
      */
     public CrawlTask(int taskId, String url, String targetRoot) {
@@ -48,8 +59,9 @@ public class CrawlTask extends Task {
 
     /**
      * Constructor of class
-     * @param taskId -> which identifies the current task id.It is also used to identify the depth of recursion
-     * @param url -> contains the url from which the information is downloaded
+     *
+     * @param taskId     -> which identifies the current task id.It is also used to identify the depth of recursion
+     * @param url        -> contains the url from which the information is downloaded
      * @param targetRoot -> contains the path root where the information will be downloaded ( inherited from the previous task )
      * @param targetPath -> contains the path where the information is downloaded.
      */
@@ -62,8 +74,9 @@ public class CrawlTask extends Task {
 
     /**
      * Returns a resolved string with the destination of the next reference.
+     *
      * @param refType type of the reference ( anchor, image, script or link).
-     * @param url the url that needs to be resolved.
+     * @param url     the url that needs to be resolved.
      * @param baseUrl the base url for given website
      * @return a string containing the path in the system for current url.
      * @throws CrawlerException exception if the resolve will fail.
@@ -102,11 +115,11 @@ public class CrawlTask extends Task {
 
             //Used for detecting all tags that may contain references
             Pattern referencesPattern = Pattern.compile("(<(script|img|a|link)\\s+(?:[^>]*?\\s+)?" +
-                    "(src|href)(\\s?|\\s+)=(\\s?|\\s+)([\"'])(.*?)\\6)",
-                Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+                            "(src|href)(\\s?|\\s+)=(\\s?|\\s+)([\"'])(.*?)\\6)",
+                    Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 
             //Used for detecting paths from internal url
-                Pattern internalPattern = Pattern.compile("^\\.?(?:\\.{2})?(?:\\/\\.{2})*(\\/?[\\w\\d-\\.\\*]+)+",
+            Pattern internalPattern = Pattern.compile("^\\.?(?:\\.{2})?(?:\\/\\.{2})*(\\/?[\\w\\d-\\.\\*]+)+",
                     Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 
             HashMap<String, String[]> returnHash = new HashMap<>();
@@ -117,30 +130,29 @@ public class CrawlTask extends Task {
 
                 String newUrl = pageMatcher.group(7);
 
-                if(newUrl.equals(baseUrl + "/") || newUrl.equals(baseUrl))
+                if (newUrl.equals(baseUrl + "/") || newUrl.equals(baseUrl))
                     continue;
 
                 if (newUrl.regionMatches(true, 0, baseUrl, 0, baseUrl.length())) {
 
                     //If the reference is a website part of same domain
                     //We can have arguments inside this uris, remove them
-                    if((indexOf = newUrl.indexOf("?")) != -1) {
+                    if ((indexOf = newUrl.indexOf("?")) != -1) {
                         newUrl = newUrl.substring(0, indexOf);
                     }
 
                     //We will not try to download the .php files
-                    if(!newUrl.endsWith(".php")) {
+                    if (!newUrl.endsWith(".php")) {
                         returnHash.putIfAbsent(newUrl, new String[]{newUrl,
                                 resolveHtml(pageMatcher.group(2), newUrl, baseUrl)});
                     }
-                }
-                else {
+                } else {
                     Matcher pathMatcher = internalPattern.matcher(newUrl);
-                    if(pathMatcher.find() && newUrl.equals(pathMatcher.group())) {
+                    if (pathMatcher.find() && newUrl.equals(pathMatcher.group())) {
                         //If it is a reference inside the root dir
                         String tempUrl = baseUrl + newUrl;
                         //We will not try to download the .php files
-                        if(!tempUrl.endsWith(".php")) {
+                        if (!tempUrl.endsWith(".php")) {
                             returnHash.putIfAbsent(tempUrl, new String[]{newUrl,
                                     resolveHtml(pageMatcher.group(2), tempUrl, baseUrl)});
                         }
@@ -148,53 +160,47 @@ public class CrawlTask extends Task {
                 }
             }
             return returnHash;
-        }
-        catch (Exception exception) {
+        } catch (Exception exception) {
             throw new InternalException("Web page does not exist!");
         }
     }
 
     /**
-     * Downloads the web page of the current Task
+     * Create the string with refs of the current Task
      *
      * @return a string witch contains the entire web page
      * @throws CrawlerException if an error occurs during the download process
      */
-    private String downloadPage() throws CrawlerException {
+    private String createStringPage() throws CrawlerException {
         try {
             URL url = new URL(this.url);
             BufferedReader siteReader =
                     new BufferedReader(new InputStreamReader(url.openStream()));
             // Read each line into a stringBuffer for further processing
 
-            File filePath = new File(targetPath.substring(0 , targetPath.lastIndexOf("/")));
 
-            if (!filePath.exists())
-                filePath.mkdirs();
-
-            BufferedWriter writer = new BufferedWriter(new FileWriter(targetPath));
             String line;
             StringBuilder siteBuffer = new StringBuilder();
             while ((line = siteReader.readLine()) != null) {
                 siteBuffer.append(line + "\n");
-                writer.write(line + "\n");
             }
 
             siteReader.close();
-            writer.close();
             return siteBuffer.toString();
-        }
-        catch (Exception exception) {
+        } catch (Exception exception) {
             throw new InternalException(exception.getMessage());
         }
     }
 
     /**
      * Boolean method that tests->if the maximum level of recursion has been reached
-     *                          ->if path and url is null
+     * ->if path and url is null
+     *->if a ref page has already been downloaded
+     *
+     * @param nextPath the following url to download
      * @return true/false
      */
-    private boolean testTask() {
+    private boolean testTask(String nextPath) {
         try {
 
             /** If the next task will surpass depth we will not run the next task
@@ -205,122 +211,129 @@ public class CrawlTask extends Task {
 
             Configurations confInstance = Configurations.getInstance();
 
-            //TODO: See if it has already been downloaded
+            int depthLv = confInstance.getDepthLevel();
 
-            //TODO: Check for depth level
-
-            //TODO: Remove from HashMap if necessary, HashMap will be given as param
-
-            int depthLv=confInstance.getDepthLevel();
-            if((url==null)||(targetPath==null))
-            {
+            if ((url == null) || (targetPath == null)) {
                 throw new InputException("Null HashMap given to method startTasks");
             }
-            if(taskId+1<=depthLv)
-            {
-                return true;
-            }
-            else{
+            if (taskId + 1 <= depthLv) {
+
+                //TODO: See if it has already been downloaded
+                File testExist = new File(nextPath);
+                if(testExist.exists()==false)
+                {
+                    return true;
+                } else
+                {
+                    return false;
+                }
+
+            } else {
                 return false;
             }
 
-        } catch (_CrawlerException error){
+        } catch (_CrawlerException error) {
             error.getMessage();
         }
         return false;
     }
 
     /**
-     *The method that starts the tasks of downloading the initial url references to the max depth set
+     * The method that starts the tasks of downloading the initial url references to the max depth set
+     *
      * @param nextRef
      */
-    private void startTasks(HashMap<String,String> nextRef){
+    private void startTasks(HashMap<String, String[]> nextRef) {
         try {
-            if(testTask()) {
-                CrawlerThreadPool threadPoolInstance = CrawlerThreadPool.getInstance();
 
-                if(nextRef==null)
-                {
+                CrawlerThreadPool threadPoolInstance = CrawlerThreadPool.getInstance();
+                if (nextRef == null) {
                     throw new InputException("Null HashMap given to method startTasks");
                 }
-                for (HashMap.Entry<String, String> element : nextRef.entrySet()) {
-                    Factory factoryTask = new Factory();
+                for(String key : nextRef.keySet()) {
 
-                    List<String> argsList = new ArrayList<>();
-                    String idStr = String.valueOf(taskId + 1);
-                    argsList.add((idStr));
-                    argsList.add(element.getKey());
-                    argsList.add(element.getValue());
+                    if (testTask(nextRef.get(key)[1])) { //test depth+already exist
 
-                    Task downloadTask = factoryTask.createTask(CrawlTask.class, argsList);//tipul+lista de argumente
+                      //  Factory factoryTask = new Factory();
+                        List<String> argsList = new ArrayList<>();
 
-                    threadPoolInstance.putTask(downloadTask);
+                        String idStr = String.valueOf(taskId + 1);
+                        argsList.add((idStr));
+                        argsList.add(key);//url
+                        argsList.add(nextRef.get(key)[1]);//path
+
+                       //Task downloadTask = factoryTask.createTask(CrawlTask.class, argsList);//tipul+lista de argumente
+                      if(taskId==0) {// SA FAC DOAR PRIMUL NIVEL.. DACA LE FAC PE TOATE->CODE 429 url
+                          Task downloadTask = new CrawlTask(taskId + 1, key, nextRef.get(key)[1],targetRoot);
+
+                          threadPoolInstance.putTask(downloadTask);
+                      }
+                    }
                 }
-            }
 
-        }catch (InternalException error){
-            error.getMessage();
-        }catch (InputException error){
-            error.getMessage();
-        } catch (CrawlerException crawlerException) {
+        } catch (_CrawlerException crawlerException) {
             crawlerException.getMessage();
         }
     }
 
     /**
-     * Method that replaces all references with the names of locally downloaded files
-     *
+     * Method that download page from current url and replaces all references with the names of locally downloaded files
      */
-    private void replaceHTMLRef() {
+    private void replaceHTMLRef(HashMap<String, String[]> refMap) {
         try {
+            URL url = new URL(this.url);//Nu puteam parsa dupa \n....putea sa existe o linie ce contine aceasta secv.
+            BufferedReader siteReader =
+                    new BufferedReader(new InputStreamReader(url.openStream()));
+            // Read each line into a stringBuffer for further processing
 
-            String inPath = targetPath + "\\" + url;//aici cum numim fisierele-> NU putem pune url ca nume
-            String outPath = targetPath + "\\1" + url;
+            File filePath = new File(targetPath.substring(0, targetPath.lastIndexOf("/")));
 
-            File oldFile = new File(inPath);
-            PrintWriter newFile = new PrintWriter(outPath);
+            if (!filePath.exists())
+                filePath.mkdirs();
 
-            Scanner reader = new Scanner(oldFile);
+            BufferedWriter writer = new BufferedWriter(new FileWriter(targetPath));
+            String line;
+            while ((line = siteReader.readLine()) != null) {
 
-            int nrRef = 0;
-            while (reader.hasNextLine()) {
                 int status = 0;
-                String data = reader.nextLine();
-                String patternString = "\\b((https?|ftp):\\/\\/)?[-a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[A-Za-z]{2,6}\\b(\\/[-a-zA-Z0-9@:%_\\+.~#?&//=]*)*(?:\\/|\\b)";
-                Pattern pattern = Pattern.compile(patternString);
-                Matcher matcher = pattern.matcher(data);
+                String newStateLine = line;
+                for (String element : refMap.keySet()) {
 
-                String newStateLine = null;
-                String lastStateLine = data;
-                while (matcher.find()) {
-                    status = 1;
-                    nrRef++;
+                    line=newStateLine;
+                    String patternString = refMap.get(element)[0];
+                    Pattern pattern = Pattern.compile(patternString);
+                    Matcher matcher = pattern.matcher(line);
 
-                    String stringValue = String.valueOf(nrRef);
-                    int lenString = lastStateLine.length();
+                    String lastStateLine=line;
 
-                    newStateLine = lastStateLine.substring(0, matcher.start()) + stringValue + lastStateLine.substring(matcher.end(), lenString);
-                    matcher = pattern.matcher(newStateLine);
-                    lastStateLine = newStateLine;
+                    while (matcher.find()) {
+                        int lenString = lastStateLine.length();
+
+                        if((lastStateLine.charAt(matcher.end())=='"')&&(lastStateLine.charAt(matcher.start()-1)=='"'))
+                        {
+                            newStateLine = lastStateLine.substring(0, matcher.start()) + refMap.get(element)[1] + lastStateLine.substring(matcher.end(), lenString);
+                            matcher = pattern.matcher(newStateLine);
+                            lastStateLine = newStateLine;
+                            status = 1;
+                        }else{
+                            continue;
+                        }
+                    }
+
                 }
-                if (status != 0) {
-                    newFile.println(newStateLine);
-                } else {
-                    newFile.println(data);
+                if(status!=0) {
+                    writer.write(newStateLine + "\n");
+                }
+                else
+                {
+                    writer.write(line + "\n");
                 }
             }
-            newFile.close();
-            reader.close();
-            oldFile.delete();
-
-            /**
-             * The new file is renamed after the input file
-             */
-            Path source = Paths.get(outPath);
-            Files.move(source, source.resolveSibling(inPath));
-        } catch (Exception error){
-            error.getMessage();
-        }
+            siteReader.close();
+            writer.close();
+        } catch(Exception error){
+                    error.getMessage();
+                }
     }
 
     /**
@@ -334,14 +347,14 @@ public class CrawlTask extends Task {
             if(this.taskId == 0) {
                 this.targetPath = this.targetRoot + "/index.html";
             }
-            //startTasks(parsePageHtml());
-            HashMap<String, String[]> hashMap =  parsePageHtml(downloadPage());
+            String stringPage=createStringPage();
+            HashMap<String, String[]> hashMap =  parsePageHtml(stringPage);
+            replaceHTMLRef(hashMap);
+            //startTasks(hashMap);
+           /* for(String key : hashMap.keySet()) {
+                System.out.println(key+" -> "+hashMap.get(key)[0] + " - " + hashMap.get(key)[1]);
+            }*/
 
-            for(String key : hashMap.keySet()) {
-                System.out.println(key + " -> " + hashMap.get(key)[0] + " - " + hashMap.get(key)[1]);
-            }
-
-            //replaceHTMLRef();
             /**
              *
              * Download page -> return string + scrie in fisier pagina index.html practic
