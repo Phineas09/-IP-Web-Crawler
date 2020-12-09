@@ -31,7 +31,7 @@ public class Factory {
 
     private static final int createCrawlTaskArgsCount =3;
     private static final int createSiteMapArgsCount =2;
-    private static final int searchServiceArgsCount=4;
+    private static final int searchServiceArgsCount=5;
     private static final int BADPATH=-1;
     private static final int ISADIR=2;
     private static final int ISAFILE= 3;
@@ -187,8 +187,8 @@ public class Factory {
                 throw new InputException("Bad maxSize. Not a number."+args.get(2));
             }
             String pattern = args.get(3);
-
-            return  new SearchService(extensions,keyword,maxSize,pattern);
+            String path =args.get(4);
+            return  new SearchService(extensions,keyword,maxSize,pattern,path);
 
         }
 
