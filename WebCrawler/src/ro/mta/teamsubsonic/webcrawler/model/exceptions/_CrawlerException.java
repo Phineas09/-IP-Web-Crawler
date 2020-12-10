@@ -34,7 +34,7 @@ public class _CrawlerException extends CrawlerException {
     @Override
     public String getMessage() {
         String messageString = "Exception -> " + exceptionType + " : " + message;
-        Logger.getInstance().write(messageString, 0);
+        Logger.getInstance().write(messageString, 0, 1); //Always show as errors
         return messageString;
     }
 }
