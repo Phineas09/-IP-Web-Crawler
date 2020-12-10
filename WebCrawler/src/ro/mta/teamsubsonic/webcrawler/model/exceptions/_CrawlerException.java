@@ -9,11 +9,9 @@ import ro.mta.teamsubsonic.webcrawler.view.Logger;
  */
 public class _CrawlerException extends CrawlerException {
 
-    /**
-     * Message string, contains the corresponding error message
-     * ExceptionType contains the type of the thrown error
-     */
+    /** Message string, contains the corresponding error message */
     private String message;
+    /** ExceptionType contains the type of the thrown error */
     private String exceptionType;
 
     /**
@@ -34,7 +32,7 @@ public class _CrawlerException extends CrawlerException {
     @Override
     public String getMessage() {
         String messageString = "Exception -> " + exceptionType + " : " + message;
-        Logger.getInstance().write(messageString, 0, 1); //Always show as errors
+        Logger.getInstance().write(messageString, 2, 1); //Always show as errors
         return messageString;
     }
 }

@@ -20,14 +20,14 @@ public class Logger {
     /** Singleton instance of the class */
     private static Logger instance = null;  // singleton object
     /** The outFile to log if this is set */
-    public FileWriter     outputFile;       // the writer who will do the job done writing output
+    private FileWriter     outputFile;       // the writer who will do the job done writing output
 
     /**
      * Logger class constructor
      */
     private Logger() { this.outputFile = null; }
 
-    public static Logger getInstance() {
+    public synchronized static Logger getInstance() {
         // verify if the singleton object is already created
         if (instance == null)
                 instance = new Logger();
@@ -39,7 +39,7 @@ public class Logger {
      * @param filePath new file to set the output to.
      * @throws CrawlerException if the file path is invalid.
      */
-    public void setOutputFile(String filePath) throws CrawlerException {
+    public synchronized void setOutputFile(String filePath) throws CrawlerException {
         try {
             if (filePath == null) {
                 throw new InputException("Invalid filepath entered!");
@@ -62,7 +62,7 @@ public class Logger {
      * @param message string that we have to display
      * @param filePath path to the file we need to write into
      */
-    public void write(String message, String filePath, int logLevel){
+    public synchronized void write(String message, String filePath, int logLevel){
         try {
             int globalLogLeve = Configurations.getInstance().getLogLevel();
 
@@ -101,10 +101,10 @@ public class Logger {
      * This function will log at given standard a certain log message
      * If printing in file, the file must be initialized first !
      * @param message Message to be logged
-     * @param stdin Where to log the message 0 -> stdin, 1 -> file, 2 -> prints to both
+     * @param stdout Where to log the message 0 -> stdout, 1 -> file, 2 -> prints to both
      * @param logLevel 1 -> Errors, 2 -> Warns, 3 -> Anything else.
      */
-    public void write(String message, int stdin, int logLevel) {
+    public synchronized void write(String message, int stdout, int logLevel) {
         try {
             int globalLogLeve = Configurations.getInstance().getLogLevel();
 
@@ -116,7 +116,7 @@ public class Logger {
                 case 2 -> message = "Warning: " + message;
                 case 3 -> message = "Info: " + message;
             }
-            this.write(message, stdin);
+            this.write(message, stdout);
         }
         catch (CrawlerException crawlerException) {
             crawlerException.getMessage();
@@ -124,25 +124,26 @@ public class Logger {
     }
 
     /**
-     * Logs a message to stdin must preceded by "Error | Warning | Info" this function will not
+     * Logs a message to stdout must preceded by "Error | Warning | Info" this function will not
      * add this automatically, for this check the other write.
      *
      * @param message Message to be logged.
-     * @param stdin Where to log, 0 for console ( stdout ), 1 for file that was set with
+     * @param stdout Where to log, 0 for console ( stdout ), 1 for file that was set with
      *             setOutputFile and 2 for logging to both.
      */
-    public void write(String message, int stdin){
+    public synchronized void write(String message, int stdout){
         try {
             String timeStamp = new SimpleDateFormat("[ dd.MM.yyyy - HH.mm.ss ] ").format(new Date());
             message = timeStamp + message;
-            switch (stdin) {
+            switch (stdout) {
                 case 0 -> System.out.println(message);
                 case 1 -> outputFile.write(message + "\n");
                 case 2 -> {
                     System.out.println(message);
-                    outputFile.write(message + "\n");
+                    if(outputFile != null)
+                        outputFile.write(message + "\n");
                 }
-                default -> throw new InputException("Unknown stdin provided!");
+                default -> throw new InputException("Unknown stdout provided!");
             }
         }
         catch(Exception err) {
