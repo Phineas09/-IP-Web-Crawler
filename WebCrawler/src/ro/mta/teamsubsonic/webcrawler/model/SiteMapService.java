@@ -1,8 +1,10 @@
 package ro.mta.teamsubsonic.webcrawler.model;
 
+import ro.mta.teamsubsonic.webcrawler.model.exceptions.CrawlerException;
 import ro.mta.teamsubsonic.webcrawler.model.exceptions.FileException;
 import ro.mta.teamsubsonic.webcrawler.model.exceptions.InputException;
 import ro.mta.teamsubsonic.webcrawler.model.exceptions._CrawlerException;
+import ro.mta.teamsubsonic.webcrawler.view.Logger;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -18,10 +20,13 @@ import java.util.List;
 public class SiteMapService implements Crawler {
 
     /**
-     * Members of the class
-     */
+     * @param path is the path to the root directory
+     * @param outFile is the path to the output file
+     **/
     private String path;
     private String outFile;
+
+    private Logger logger;
 
     /**
      * Constructor
@@ -32,6 +37,12 @@ public class SiteMapService implements Crawler {
     public SiteMapService(String path, String outFile) {
         this.path = path;
         this.outFile = outFile;
+        logger = Logger.getInstance();
+        try {
+            logger.setOutputFile(Configurations.getInstance().getLogFile());
+        } catch (CrawlerException ex){
+            ex.getMessage();
+        }
     }
 
     /**
@@ -64,15 +75,19 @@ public class SiteMapService implements Crawler {
                 if (subDirectoryList != null) {
                     for (int j = 0; j < subDirectoryList.length; j++) {
                         file = subDirectoryList[j];
-                        if (file.isDirectory())
+                        if (file.isDirectory()){
+                            logger.write("New directory found!" + file.getName(), 2, 3);
                             depth.add(i+1,-(Math.abs(depth.get(i)) + 1));
-                        else
-                            depth.add(i+1,Math.abs(depth.get(i)) + 1);
+                        }
+                        else {
+                            logger.write("New file found!" + file.getName(), 2, 3);
+                            depth.add(i + 1, Math.abs(depth.get(i)) + 1);
+                        }
                         fileList.add(i+1,subDirectoryList[j]);
                     }
                 }
             }
-
+            logger.write("File list complete!", 2, 3);
             try {
                 file = new File(outFile);
                 file.createNewFile();
@@ -103,7 +118,8 @@ public class SiteMapService implements Crawler {
                 fileWriter.write("\n");
             }
             fileWriter.close();
-        } catch (_CrawlerException ex) {
+            logger.write("SiteMap finished writing to file!", 2, 3);
+        } catch (CrawlerException ex) {
             ex.getMessage();
         } catch (Exception ex) {
             InputException exception = new InputException("Path is empty!");

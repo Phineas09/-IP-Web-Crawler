@@ -194,4 +194,12 @@ public class Configurations {
     public String getConfigFileLocation() {
         return configFileLocation;
     }
+
+    public boolean isRobots() {
+        return robots;
+    }
+
+    public void setRobots(boolean robots) {
+        this.robots = robots;
+    }
 }
