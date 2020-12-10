@@ -1,14 +1,11 @@
 package ro.mta.teamsubsonic.webcrawler.model;
 
 import ro.mta.teamsubsonic.webcrawler.model.exceptions.*;
+import ro.mta.teamsubsonic.webcrawler.view.Logger;
 
-import javax.sound.midi.SysexMessage;
 import java.io.*;
 import java.net.URI;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -89,13 +86,13 @@ public class CrawlTask extends Task {
         customPath = customPath.replaceAll("/", "_");
 
         switch (refType) {
-            case "script" -> resolvedString = resolvedString + "/scripts/";
-            case "img" -> resolvedString = resolvedString + "/images/";
-            case "a" -> resolvedString = resolvedString + "/pages/";
-            case "link" -> resolvedString = resolvedString + "/css/";
+            case "script" -> resolvedString = resolvedString + "/scripts/" + customPath;
+            case "img" -> resolvedString = resolvedString + "/images/" + customPath;
+            case "a" -> resolvedString = resolvedString + "/pages/" + customPath + ".html";
+            case "link" -> resolvedString = resolvedString + "/css/" + customPath;
             default -> throw new InternalException("This should never throw @CrawlTask.resolveHTML!");
         }
-        return resolvedString + customPath;
+        return resolvedString;
     }
 
     /**
@@ -174,6 +171,7 @@ public class CrawlTask extends Task {
     private String createStringPage() throws CrawlerException {
         try {
             URL url = new URL(this.url);
+            Logger.getInstance().write("Downloading web page " + this.url, 0, 3);
             BufferedReader siteReader =
                     new BufferedReader(new InputStreamReader(url.openStream()));
             // Read each line into a stringBuffer for further processing
@@ -182,7 +180,7 @@ public class CrawlTask extends Task {
             String line;
             StringBuilder siteBuffer = new StringBuilder();
             while ((line = siteReader.readLine()) != null) {
-                siteBuffer.append(line + "\n");
+                siteBuffer.append(line + "<newLine>");
             }
 
             siteReader.close();
@@ -263,7 +261,8 @@ public class CrawlTask extends Task {
                         argsList.add(nextRef.get(key)[1]);//path
 
                        //Task downloadTask = factoryTask.createTask(CrawlTask.class, argsList);//tipul+lista de argumente
-                      if(taskId==0) {// SA FAC DOAR PRIMUL NIVEL.. DACA LE FAC PE TOATE->CODE 429 url
+                      if(taskId==0) {
+                          // SA FAC DOAR PRIMUL NIVEL.. DACA LE FAC PE TOATE->CODE 429 url
                           Task downloadTask = new CrawlTask(taskId + 1, key, nextRef.get(key)[1],targetRoot);
 
                           threadPoolInstance.putTask(downloadTask);
@@ -279,21 +278,24 @@ public class CrawlTask extends Task {
     /**
      * Method that download page from current url and replaces all references with the names of locally downloaded files
      */
-    private void replaceHTMLRef(HashMap<String, String[]> refMap) {
+    private void replaceHTMLRef(HashMap<String, String[]> refMap, String siteString) {
         try {
-            URL url = new URL(this.url);//Nu puteam parsa dupa \n....putea sa existe o linie ce contine aceasta secv.
-            BufferedReader siteReader =
-                    new BufferedReader(new InputStreamReader(url.openStream()));
-            // Read each line into a stringBuffer for further processing
+
+            String[] siteLines = siteString.split("<newLine>");
 
             File filePath = new File(targetPath.substring(0, targetPath.lastIndexOf("/")));
+
+            String absoluteFilePath = filePath.getCanonicalPath().replace('\\', '/') + "/";
+            //Remove target root from absolute file path
 
             if (!filePath.exists())
                 filePath.mkdirs();
 
             BufferedWriter writer = new BufferedWriter(new FileWriter(targetPath));
             String line;
-            while ((line = siteReader.readLine()) != null) {
+            for(int i = 0; i < Arrays.stream(siteLines).count(); i++) {
+                line = siteLines[i];
+            //while ((line = siteReader.readLine()) != null) {
 
                 int status = 0;
                 String newStateLine = line;
@@ -309,27 +311,25 @@ public class CrawlTask extends Task {
                     while (matcher.find()) {
                         int lenString = lastStateLine.length();
 
-                        if((lastStateLine.charAt(matcher.end())=='"')&&(lastStateLine.charAt(matcher.start()-1)=='"'))
-                        {
-                            newStateLine = lastStateLine.substring(0, matcher.start()) + refMap.get(element)[1] + lastStateLine.substring(matcher.end(), lenString);
+                        if((lastStateLine.charAt(matcher.end())=='"')&&(lastStateLine.charAt(matcher.start()-1)=='"')) {
+                            String replaceString = refMap.get(element)[1].substring(this.targetRoot.length() + 1);
+                            newStateLine = lastStateLine.substring(0, matcher.start()) + absoluteFilePath + replaceString + lastStateLine.substring(matcher.end(), lenString);
                             matcher = pattern.matcher(newStateLine);
                             lastStateLine = newStateLine;
                             status = 1;
-                        }else{
+                        }
+                        else {
                             continue;
                         }
                     }
-
                 }
                 if(status!=0) {
-                    writer.write(newStateLine + "\n");
+                    writer.write(newStateLine);
                 }
-                else
-                {
-                    writer.write(line + "\n");
+                else {
+                    writer.write(line);
                 }
             }
-            siteReader.close();
             writer.close();
         } catch(Exception error){
                     error.getMessage();
@@ -347,11 +347,13 @@ public class CrawlTask extends Task {
             if(this.taskId == 0) {
                 this.targetPath = this.targetRoot + "/index.html";
             }
-            String stringPage=createStringPage();
-            HashMap<String, String[]> hashMap =  parsePageHtml(stringPage);
-            replaceHTMLRef(hashMap);
-            //startTasks(hashMap);
-           /* for(String key : hashMap.keySet()) {
+            String stringPage = createStringPage();
+            HashMap<String, String[]> hashMap = parsePageHtml(stringPage);
+            replaceHTMLRef(hashMap, stringPage);
+            //Logger.getInstance().write("Waiting for " + Configurations.getInstance().getDelay() + " ms.", 0, 3);
+            Thread.sleep((long)Configurations.getInstance().getDelay());
+            startTasks(hashMap);
+            /* for(String key : hashMap.keySet()) {
                 System.out.println(key+" -> "+hashMap.get(key)[0] + " - " + hashMap.get(key)[1]);
             }*/
 
@@ -363,7 +365,7 @@ public class CrawlTask extends Task {
              * Replace : <URL target> cu <Target path> with modified HashMap<String, String>
              */
         }
-        catch (CrawlerException crawlerException) {
+        catch (Exception crawlerException) {
             crawlerException.getMessage();
         }
     }
