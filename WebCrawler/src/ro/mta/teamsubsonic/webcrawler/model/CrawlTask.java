@@ -191,6 +191,37 @@ public class CrawlTask extends Task {
     }
 
     /**
+     *This method is useful for the last level of recursion where only the references to the already downloaded pages need to be replaced.
+     *
+     * @param path the local path of the reference to be replaced
+     * @return true/false if it can be replaced
+     */
+    private boolean testForReplace(String path){
+        try {
+            Configurations confInstance = Configurations.getInstance();
+
+            int depthLv = confInstance.getDepthLevel();
+
+            if (taskId == depthLv) {//daca suntem pe ultimul nivel
+                File testExist = new File(path);
+                if (testExist.exists()) { //testez daca exista url-ul descarcat sa-l inlocuiesc
+                    return true;
+                } else {
+                    return false;//nu inlocuiesc daca NU exista
+                }
+
+            } else {
+                return true;//inlocuiesc toate ref pana la ultimul nivel
+            }
+        }catch (CrawlerException e)
+        {
+            e.getMessage();
+        }
+        return true;
+    }
+
+
+    /**
      * Boolean method that tests->if the maximum level of recursion has been reached
      * ->if path and url is null
      *->if a ref page has already been downloaded
@@ -313,10 +344,12 @@ public class CrawlTask extends Task {
 
                         if((lastStateLine.charAt(matcher.end())=='"')&&(lastStateLine.charAt(matcher.start()-1)=='"')) {
                             String replaceString = refMap.get(element)[1].substring(this.targetRoot.length() + 1);
-                            newStateLine = lastStateLine.substring(0, matcher.start()) + absoluteFilePath + replaceString + lastStateLine.substring(matcher.end(), lenString);
-                            matcher = pattern.matcher(newStateLine);
-                            lastStateLine = newStateLine;
-                            status = 1;
+                            if(testForReplace(replaceString)) {
+                                newStateLine = lastStateLine.substring(0, matcher.start()) + absoluteFilePath + replaceString + lastStateLine.substring(matcher.end(), lenString);
+                                matcher = pattern.matcher(newStateLine);
+                                lastStateLine = newStateLine;
+                                status = 1;
+                            }
                         }
                         else {
                             continue;
