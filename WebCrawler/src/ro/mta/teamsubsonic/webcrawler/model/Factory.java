@@ -1,14 +1,7 @@
 package ro.mta.teamsubsonic.webcrawler.model;
-import ro.mta.teamsubsonic.webcrawler.model.Crawler;
-import ro.mta.teamsubsonic.webcrawler.model.Task;
-import ro.mta.teamsubsonic.webcrawler.model.exceptions.BadURIException;
-import ro.mta.teamsubsonic.webcrawler.model.exceptions.InputException;
-import ro.mta.teamsubsonic.webcrawler.model.exceptions.InternalException;
-import ro.mta.teamsubsonic.webcrawler.model.exceptions._CrawlerException;
-
+import ro.mta.teamsubsonic.webcrawler.model.exceptions.*;
 import java.io.File;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -69,10 +62,10 @@ public class Factory {
     /**
      * Create task method.
      * @return reference to created object
-     * @throws _CrawlerException as BadURIException,InputException and InternalException.
+     * @throws CrawlerException as BadURIException,InputException and InternalException.
      *
      */
-    public Task createTask (Class<?> type, List<String> args) throws  _CrawlerException{
+    public Task createTask (Class<?> type, List<String> args) throws CrawlerException {
             if(type == CrawlTask.class) {
                 /**
                  * Verifying the number of args
@@ -97,18 +90,7 @@ public class Factory {
                 if(!checkUrl(args.get(1))){
                     throw new BadURIException("Bad URI format:"+ args.get(1)+" .This is not a URI!");
                 }
-                /**
-                 * Check if the path exists.
-                 */
 
-                int pathCheck= checkPath(args.get(2));
-                if(pathCheck == BADPATH){
-                    throw new InputException("Folder target path:"+args.get(2)+" is not a valid path on your OS!");
-
-                }
-                if(pathCheck == ISAFILE){
-                    throw  new InputException("Selected target path:"+args.get(2)+" Is not a directory!");
-                }
 
                 CrawlTask retCrawlTask = new CrawlTask(taskId,args.get(1),args.get(2));
                 return retCrawlTask;
@@ -120,10 +102,10 @@ public class Factory {
     /**
      * Create crawler method.
      * @return Crawler as CrawlService, SearchService,SiteMapService
-     * @throws _CrawlerException as InputException and InternalException.
+     * @throws CrawlerException as InputException and InternalException.
      *
      */
-    public Crawler createCrawler(Class<?>  type, List<String> args) throws _CrawlerException{
+    public Crawler createCrawler(Class<?>  type, List<String> args) throws CrawlerException{
         /**
          *Create the appropiate type of object
          *

@@ -1,9 +1,9 @@
 package ro.mta.teamsubsonic.webcrawler.controller;
 
 import ro.mta.teamsubsonic.webcrawler.model.*;
+import ro.mta.teamsubsonic.webcrawler.model.exceptions.CrawlerException;
 import ro.mta.teamsubsonic.webcrawler.model.exceptions.InputException;
 import ro.mta.teamsubsonic.webcrawler.model.exceptions.InternalException;
-import ro.mta.teamsubsonic.webcrawler.model.exceptions._CrawlerException;
 import ro.mta.teamsubsonic.webcrawler.view.Logger;
 
 import java.io.BufferedReader;
@@ -214,7 +214,7 @@ public class CrawlerController {
 
 
         }
-        catch (_CrawlerException e){
+        catch (CrawlerException e){
             e.getMessage();
             return null;
         }
@@ -232,7 +232,7 @@ public class CrawlerController {
             }
             this.crawlerService.run();
         }
-        catch (_CrawlerException e){
+        catch (CrawlerException e){
             e.getMessage();
         }
     };
