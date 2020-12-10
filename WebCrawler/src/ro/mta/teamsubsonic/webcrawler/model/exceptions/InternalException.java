@@ -2,7 +2,7 @@ package ro.mta.teamsubsonic.webcrawler.model.exceptions;
 
 /**
  * Exception in case there is an internal error
- *
+ * @see ro.mta.teamsubsonic.webcrawler.model.exceptions._CrawlerException
  * @author VladTeapa
  */
 public class InternalException extends _CrawlerException {
