@@ -255,7 +255,7 @@ public class CrawlTask extends Task {
             } else {
                 return true;//inlocuiesc toate ref pana la ultimul nivel
             }
-        } catch (CrawlerException e) {
+        } catch (Exception e) {
             e.getMessage();
         }
         return true;
