@@ -19,8 +19,34 @@ import java.util.regex.Pattern;
  *                                * replacing the references with the local path.
  * @author Gunyx
  * @author Phineas09
+ * @author Vlad Florea -> it ain't much but it's honest work.
  */
+
+
 public class CrawlTask extends Task {
+    private static final String userAgent=""; //Name of the webCrawler - default name is empty
+
+    /**
+     * Regexes used to identify entries in robots.txt
+     */
+    private static final String userAgentMatcher="^User-agent: .*$";
+    private static final Integer userAgentIndex="User-agent: ".length();
+    private static final String allowRuleRegex="^Allow: .*$";
+    private static final String disallowRuleRegex="^Disallow: .*$";
+    private static final String ruleRegex="^Disallow: .*$|^Allow: .*$";
+
+    /**
+     * Indexes used to address rules in robots.txt
+     */
+    private static final Integer allowRuleIndex="Allow: ".length();
+    private static final Integer disallowRuleIndex="Disallow: ".length();
+
+    /**
+     * TypeDefs for rule types - allow or disallow
+     */
+    private static final Boolean ruleAllow = true;
+    private static final Boolean ruleDisalow = false;
+
 
     /**
      * It is the taskId of the currently executing task in the threadPool and also represents the depth of the crawl
@@ -28,6 +54,10 @@ public class CrawlTask extends Task {
     private final int taskId;
     /**
      * It is the url that will be downloaded by this task
+     */
+    private HashMap<String,Boolean> robotsRules;
+    /**
+     * HashMap that stores the Rules from robots.txt
      */
     private final String url;
     /**
@@ -51,6 +81,7 @@ public class CrawlTask extends Task {
         this.url = url;
         this.targetRoot = targetRoot;
         this.targetPath = null;
+        this.robotsRules = new HashMap<>();
     }
 
     /**
@@ -66,6 +97,122 @@ public class CrawlTask extends Task {
         this.url = url;
         this.targetPath = targetPath;
         this.targetRoot = targetRoot;
+        this.robotsRules = new HashMap<>();
+
+    }
+
+    /**
+     * Method used to match Strings against regular expressions written in the style of filename*
+     * @param string -> Identifies the string
+     * @param against -> Identifies the expression
+     * @return Boolean
+     */
+
+    private Boolean matchOnStar(String string, String against){
+        String matchAgainst = new String();
+        matchAgainst= against.replaceAll("\\*",".*");
+        Pattern pattern = Pattern.compile(matchAgainst);//. represents single character
+        Matcher matcher = pattern.matcher(string);
+        return matcher.matches();
+
+    }
+    /**
+     * Method used to analyze a robots.txt file as defined by the standard.
+     * This method should be used only the first time when accessing a domain.
+     * This method initializes the HashMap robotsRules.
+     * @param robotsURL -> The URL where the robots file is located, usually www.domain.com/robots.txt
+     *
+     */
+    private void readRobots(String robotsURL){
+        String robotsString;
+        try {
+            URL url = new URL(robotsURL);
+            Logger.getInstance().write("Parsing robots page "+robotsURL, 0, 3);
+
+            BufferedReader siteReader = new BufferedReader(new InputStreamReader(url.openStream()));
+            // Read each line into a stringBuffer for further processing
+
+
+            String line;
+            StringBuilder siteBuffer = new StringBuilder();
+            while ((line = siteReader.readLine()) != null) {
+                siteBuffer.append(line + "<newLine>");
+            }
+
+            siteReader.close();
+            robotsString=siteBuffer.toString();
+        } catch (Exception exception) {
+
+            Logger.getInstance().write("Can't access "+robotsURL,2,1);
+            new InternalException(exception.getMessage()).getMessage();
+            return;
+        }
+
+        ArrayList<String> lineList = new ArrayList<String>(Arrays.asList(robotsString.split(System.getProperty("line.separator"))));
+
+        /**
+         * Parse every line and check whether it matches the begging of the rules for the given name of the webCrawler
+         * Default name is empty, should match on *
+         */
+        Integer rulesIndex = null;
+        for(String rule : lineList){
+            Pattern pattern = Pattern.compile(userAgentMatcher);
+            Matcher matcher = pattern.matcher(rule);
+            if(matcher.matches()){
+                String userPattern = rule.substring(userAgentIndex);
+                if(matchOnStar(userAgent,userPattern)){
+                    /**
+                     * Found the first entry that matches our webCrawler name
+                     */
+                    rulesIndex = lineList.indexOf(rule)+1;
+                    break;
+                }
+            }
+        }
+        if(rulesIndex == null){
+            /**
+             * robots.txt might be empty or have no viable entries.
+             */
+            Logger.getInstance().write("No entries found in "+robotsURL, 0, 3);
+            return;
+        }
+        Pattern pattern = Pattern.compile(disallowRuleRegex);
+        /**
+         * Getting rid of every other entries before our webCrawler rules.
+         */
+        lineList.subList(0,rulesIndex).clear();
+        for(String rule : lineList){
+            Pattern rulePattern = Pattern.compile(ruleRegex);
+            Matcher ruleMatcher = rulePattern.matcher(rule);
+            if(ruleMatcher.matches()){
+                /**
+                 *Check whether the rule is allow/disallow
+                 */
+                Pattern allowPattern = Pattern.compile(allowRuleRegex);
+                Matcher allowMatcher = allowPattern.matcher(rule);
+                if(allowMatcher.matches()){
+                    /**
+                     * Allow rule
+                     */
+                    this.robotsRules.put(rule.substring(allowRuleIndex).replaceAll("\\s",""),ruleAllow);
+
+
+                }
+                else{
+                    /**
+                     * Disallow rule
+                     */
+                    this.robotsRules.put(rule.substring(disallowRuleIndex).replaceAll("\\s",""),ruleDisalow);
+
+                }
+            }
+            else{
+                break;
+            }
+        }
+        Logger.getInstance().write("Parsed successfully robots file: "+robotsURL, 0, 3);
+
+
     }
 
     /**
