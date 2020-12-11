@@ -13,11 +13,16 @@ public class WebCrawler {
             Configurations.getInstance(null);
             CrawlerThreadPool crawlerThreadPool = CrawlerThreadPool.getInstance();
 
-            crawlerThreadPool.putTask(new CrawlTask(0, "https://github.com/Phineas09/-IP-Web-Crawler",
+            System.out.println(Configurations.getInstance().getLogLevel());
+
+            crawlerThreadPool.putTask(new CrawlTask(0, "https://mta.ro/",
                     "tests/mta.ro"));
 
+            crawlerThreadPool.putTask(new CrawlTask(0, "https://wiki.mta.ro/",
+                    "tests/wiki.mta.ro"));
+
             while(crawlerThreadPool.threadSafeUpdatePoolCount(0) != 0) {
-                Thread.sleep(1000);
+                Thread.sleep(2000);
             }
             crawlerThreadPool.shutdownAndAwaitTermination();
         }

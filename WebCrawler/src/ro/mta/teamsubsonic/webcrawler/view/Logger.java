@@ -118,7 +118,7 @@ public class Logger {
             }
             this.write(message, stdout);
         }
-        catch (CrawlerException crawlerException) {
+        catch (Exception crawlerException) {
             crawlerException.getMessage();
         }
     }
