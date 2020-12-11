@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-
 /**
  * Class that extends abstract class Task
  * This class is responsible for: * recursive downloads web pages from the received url
@@ -85,10 +84,19 @@ public class CrawlTask extends Task {
         String customPath = url.substring(baseUrl.length() + 1, url.length());
         customPath = customPath.replaceAll("/", "_");
 
+        String urlPath = url.substring(baseUrl.length());
+        int indexOfExtension = urlPath.lastIndexOf('.');
+
         switch (refType) {
             case "script" -> resolvedString = resolvedString + "/scripts/" + customPath;
             case "img" -> resolvedString = resolvedString + "/images/" + customPath;
-            case "a" -> resolvedString = resolvedString + "/pages/" + customPath + ".html";
+            case "a" -> {
+                if (indexOfExtension != -1) { //We already have extension, so no append + '.html'
+                    resolvedString = resolvedString + "/pages/" + customPath;
+                } else {
+                    resolvedString = resolvedString + "/pages/" + customPath + ".html";
+                }
+            }
             case "link" -> resolvedString = resolvedString + "/css/" + customPath;
             default -> throw new InternalException("This should never throw @CrawlTask.resolveHTML!");
         }
@@ -99,15 +107,18 @@ public class CrawlTask extends Task {
      * Parses a given web page for refs ( a | img | script | link ).
      *
      * @param webPage a web page in String format.
+     * @param baseUrl Base url for web page.
      * @return A HashMap of links and array of original link to be replaced and the target path to be downloaded in.
      * @throws CrawlerException exception if parsing will fail.
      */
-    private HashMap<String, String[]> parsePageHtml(String webPage) throws CrawlerException {
-
+    private HashMap<String, String[]> parsePageHtml(String webPage, String baseUrl) throws CrawlerException {
         try {
             //This function is too big @! maybe improve here
+            //Assert baseUrl is not null
+            if (baseUrl == null)
+                baseUrl = "https://" + (new URI(this.url)).getHost();
 
-            String baseUrl = "https://" + (new URI(this.url)).getHost();
+            //String baseUrl = "https://" + (new URI(this.url)).getHost();
             //Or make another variable to hold this information
 
             //Used for detecting all tags that may contain references
@@ -171,7 +182,10 @@ public class CrawlTask extends Task {
     private String createStringPage() throws CrawlerException {
         try {
             URL url = new URL(this.url);
-            Logger.getInstance().write("Downloading web page " + this.url, 0, 3);
+            //Logger.getInstance().write("Downloading web page " + this.url, 0, 3);
+
+            Logger.getInstance().write("Downloading web page " + this.url + "depth level -> " + this.taskId, 0, 3);
+
             BufferedReader siteReader =
                     new BufferedReader(new InputStreamReader(url.openStream()));
             // Read each line into a stringBuffer for further processing
@@ -191,12 +205,40 @@ public class CrawlTask extends Task {
     }
 
     /**
-     *This method is useful for the last level of recursion where only the references to the already downloaded pages need to be replaced.
+     * Downloads a web page as binary, used for .zip, .png and all other files
+     * that do not require processing.
+     *
+     * @throws CrawlerException if an exception occurs while downloading.
+     */
+    private void downloadBinaryPage() throws CrawlerException {
+        try {
+            URL url = new URL(this.url);
+            BufferedInputStream in = new BufferedInputStream(url.openStream());
+
+            File filePath = new File(targetPath.substring(0, targetPath.lastIndexOf("/")));
+
+            if (!filePath.exists())
+                filePath.mkdirs();
+
+            FileOutputStream fileOutputStream = new FileOutputStream(this.targetPath);
+            Logger.getInstance().write("Downloading web page " + this.url + "depth level -> " + this.taskId, 0, 3);
+            byte[] dataBuffer = new byte[1024];
+            int bytesRead;
+            while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
+                fileOutputStream.write(dataBuffer, 0, bytesRead);
+            }
+        } catch (IOException e) {
+            throw new InternalException(e.getMessage());
+        }
+    }
+
+    /**
+     * This method is useful for the last level of recursion where only the references to the already downloaded pages need to be replaced.
      *
      * @param path the local path of the reference to be replaced
      * @return true/false if it can be replaced
      */
-    private boolean testForReplace(String path){
+    private boolean testForReplace(String path) {
         try {
             Configurations confInstance = Configurations.getInstance();
 
@@ -213,54 +255,34 @@ public class CrawlTask extends Task {
             } else {
                 return true;//inlocuiesc toate ref pana la ultimul nivel
             }
-        }catch (CrawlerException e)
-        {
+        } catch (CrawlerException e) {
             e.getMessage();
         }
         return true;
     }
 
-
     /**
      * Boolean method that tests->if the maximum level of recursion has been reached
      * ->if path and url is null
-     *->if a ref page has already been downloaded
+     * ->if a ref page has already been downloaded
      *
      * @param nextPath the following url to download
      * @return true/false
      */
     private boolean testTask(String nextPath) {
         try {
-
-            /** If the next task will surpass depth we will not run the next task
-             * And remove the references to be changed by replaceHtmlRefs
-             * We will also test if the page has already been downloaded via resolveHtml function
-             * and some tests on the file system with the help of this.targetPath and this.targetRoot
-             */
-
             Configurations confInstance = Configurations.getInstance();
-
             int depthLv = confInstance.getDepthLevel();
 
-            if ((url == null) || (targetPath == null)) {
+            if ((this.url == null) || (this.targetPath == null)) {
                 throw new InputException("Null HashMap given to method startTasks");
             }
             if (taskId + 1 <= depthLv) {
-
-                //TODO: See if it has already been downloaded
                 File testExist = new File(nextPath);
-                if(testExist.exists()==false)
-                {
-                    return true;
-                } else
-                {
-                    return false;
-                }
-
+                return !testExist.exists();
             } else {
                 return false;
             }
-
         } catch (_CrawlerException error) {
             error.getMessage();
         }
@@ -274,32 +296,25 @@ public class CrawlTask extends Task {
      */
     private void startTasks(HashMap<String, String[]> nextRef) {
         try {
+            CrawlerThreadPool threadPoolInstance = CrawlerThreadPool.getInstance();
+            if (nextRef == null) {
+                throw new InputException("Null HashMap given to method startTasks");
+            }
+            for (String key : nextRef.keySet()) {
 
-                CrawlerThreadPool threadPoolInstance = CrawlerThreadPool.getInstance();
-                if (nextRef == null) {
-                    throw new InputException("Null HashMap given to method startTasks");
+                if (testTask(nextRef.get(key)[1])) { //test depth+already exist
+
+                    //  Factory factoryTask = new Factory();
+                    List<String> argsList = new ArrayList<>();
+
+                    String idStr = String.valueOf(taskId + 1);
+                    argsList.add((idStr));
+                    argsList.add(key);//url
+                    argsList.add(nextRef.get(key)[1]);//path
+
+                    threadPoolInstance.putTask(new CrawlTask(taskId + 1, key, nextRef.get(key)[1], targetRoot));
                 }
-                for(String key : nextRef.keySet()) {
-
-                    if (testTask(nextRef.get(key)[1])) { //test depth+already exist
-
-                      //  Factory factoryTask = new Factory();
-                        List<String> argsList = new ArrayList<>();
-
-                        String idStr = String.valueOf(taskId + 1);
-                        argsList.add((idStr));
-                        argsList.add(key);//url
-                        argsList.add(nextRef.get(key)[1]);//path
-
-                       //Task downloadTask = factoryTask.createTask(CrawlTask.class, argsList);//tipul+lista de argumente
-                      if(taskId==0) {
-                          // SA FAC DOAR PRIMUL NIVEL.. DACA LE FAC PE TOATE->CODE 429 url
-                          Task downloadTask = new CrawlTask(taskId + 1, key, nextRef.get(key)[1],targetRoot);
-
-                          threadPoolInstance.putTask(downloadTask);
-                      }
-                    }
-                }
+            }
 
         } catch (_CrawlerException crawlerException) {
             crawlerException.getMessage();
@@ -311,94 +326,102 @@ public class CrawlTask extends Task {
      */
     private void replaceHTMLRef(HashMap<String, String[]> refMap, String siteString) {
         try {
-
             String[] siteLines = siteString.split("<newLine>");
 
             File filePath = new File(targetPath.substring(0, targetPath.lastIndexOf("/")));
 
-            String absoluteFilePath = filePath.getCanonicalPath().replace('\\', '/') + "/";
-            //Remove target root from absolute file path
+            String absoluteFilePath = filePath.getCanonicalPath();
+
+            if (this.taskId != 0)
+                absoluteFilePath = filePath.getParentFile().getCanonicalPath();
+
+            absoluteFilePath = absoluteFilePath.replace('\\', '/') + "/";
 
             if (!filePath.exists())
                 filePath.mkdirs();
 
             BufferedWriter writer = new BufferedWriter(new FileWriter(targetPath));
             String line;
-            for(int i = 0; i < Arrays.stream(siteLines).count(); i++) {
+            for (int i = 0; i < Arrays.stream(siteLines).count(); i++) {
                 line = siteLines[i];
-            //while ((line = siteReader.readLine()) != null) {
-
                 int status = 0;
                 String newStateLine = line;
                 for (String element : refMap.keySet()) {
 
-                    line=newStateLine;
+                    line = newStateLine;
                     String patternString = refMap.get(element)[0];
                     Pattern pattern = Pattern.compile(patternString);
                     Matcher matcher = pattern.matcher(line);
 
-                    String lastStateLine=line;
+                    String lastStateLine = line;
 
                     while (matcher.find()) {
                         int lenString = lastStateLine.length();
 
-                        if((lastStateLine.charAt(matcher.end())=='"')&&(lastStateLine.charAt(matcher.start()-1)=='"')) {
+                        if ((lastStateLine.charAt(matcher.end()) == '"')
+                                && (lastStateLine.charAt(matcher.start() - 1) == '"')) {
+
                             String replaceString = refMap.get(element)[1].substring(this.targetRoot.length() + 1);
-                            if(testForReplace(replaceString)) {
-                                newStateLine = lastStateLine.substring(0, matcher.start()) + absoluteFilePath + replaceString + lastStateLine.substring(matcher.end(), lenString);
+
+                            if (testForReplace(replaceString)) {
+
+                                newStateLine = lastStateLine.substring(0, matcher.start()) + absoluteFilePath
+                                        + replaceString + lastStateLine.substring(matcher.end(), lenString);
+
                                 matcher = pattern.matcher(newStateLine);
                                 lastStateLine = newStateLine;
                                 status = 1;
                             }
-                        }
-                        else {
+                        } else {
                             continue;
                         }
                     }
                 }
-                if(status!=0) {
+                if ((status != 0)) {
                     writer.write(newStateLine);
-                }
-                else {
+                } else {
                     writer.write(line);
                 }
             }
             writer.close();
-        } catch(Exception error){
-                    error.getMessage();
-                }
+        } catch (Exception error) {
+            error.getMessage();
+        }
     }
 
     /**
-     *  This method ->overrides the _run() method from Task abstract class.
-     *  It is responsible for starting the application functionality.
+     * This method ->overrides the _run() method from Task abstract class.
+     * It is responsible for starting the application functionality.
      */
     @Override
     protected void _run() {
         try {
-            //Only for the first task
-            if(this.taskId == 0) {
+
+            if (this.taskId == 0) {
                 this.targetPath = this.targetRoot + "/index.html";
             }
+
+            String baseUrl = "https://" + (new URI(this.url)).getHost();
+            String urlPath = this.url.substring(baseUrl.length());
+            int indexOfExtension = urlPath.lastIndexOf('.');
+            if (indexOfExtension != -1) { //If we have an extension
+                String extension = urlPath.substring(indexOfExtension);
+                if (!extension.equalsIgnoreCase(".html")) { //or other extensions for web
+                    //Download normal binary page
+                    downloadBinaryPage();
+                    return;
+                }
+            }
+            //Download normal page, replace refs, etc
+
             String stringPage = createStringPage();
-            HashMap<String, String[]> hashMap = parsePageHtml(stringPage);
+            HashMap<String, String[]> hashMap = parsePageHtml(stringPage, baseUrl);
             replaceHTMLRef(hashMap, stringPage);
             //Logger.getInstance().write("Waiting for " + Configurations.getInstance().getDelay() + " ms.", 0, 3);
-            Thread.sleep((long)Configurations.getInstance().getDelay());
+            Thread.sleep((long) Configurations.getInstance().getDelay());
             startTasks(hashMap);
-            /* for(String key : hashMap.keySet()) {
-                System.out.println(key+" -> "+hashMap.get(key)[0] + " - " + hashMap.get(key)[1]);
-            }*/
 
-            /**
-             *
-             * Download page -> return string + scrie in fisier pagina index.html practic
-             * ParsePageHTML -> HasMap(<URL target><Target path>)
-             * StartTasks -> Start all tasks to be downloaded  + verificare de depth si existenta ?
-             * Replace : <URL target> cu <Target path> with modified HashMap<String, String>
-             */
-        }
-        catch (Exception crawlerException) {
+        } catch (Exception crawlerException) {
             crawlerException.getMessage();
         }
     }
