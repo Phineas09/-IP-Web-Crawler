@@ -155,6 +155,10 @@ public class Configurations {
         return delay;
     }
 
+    public boolean trackRobots() {
+        return robots;
+    }
+
     public void setDelay(long delay) {
         this.delay = delay;
     }
