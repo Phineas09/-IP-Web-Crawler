@@ -99,7 +99,7 @@ public class CrawlTask extends Task {
      */
     private Boolean matchOnStar(String string, String against) {
         String matchAgainst = against.replaceAll("\\*", ".*");
-        Pattern pattern = Pattern.compile(matchAgainst);//. represents single character
+        Pattern pattern = Pattern.compile(matchAgainst);
         Matcher matcher = pattern.matcher(string);
         return matcher.matches();
     }
