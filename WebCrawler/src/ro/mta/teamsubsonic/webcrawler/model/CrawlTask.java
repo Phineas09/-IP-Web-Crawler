@@ -52,7 +52,7 @@ public class CrawlTask extends Task {
      * @param targetRoot -> contains the path where the information is downloaded.
      */
     public CrawlTask(int taskId, String url, String targetRoot) {
-        this(taskId, url, targetRoot, null); //Call the other constructor
+        this(taskId, url, null, targetRoot); //Call the other constructor
     }
 
     /**
