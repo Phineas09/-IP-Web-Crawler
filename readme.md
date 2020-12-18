@@ -1,24 +1,29 @@
 # WebCrawler :card_index_dividers:
 
-Content
-- [Introducere](#Descriere aplicație)
+## Content
+- [Descriere aplicație](#Introducere)
 - [Modul de rulare](#Modul de rulare)
-- [Comenzi aplicatie](#Comenzile disponibile)
-- [Fisierul de configurare](#Conținutul fișierului de input)
+- [Parametrii aplicației](#Parametrii aplicației)
+- [Fisierul de configurare](#Formatul presetat al fișierului de configurare)
+- [Limbaj de programare](#Limbaj)
 - [Realizatori](#Echipa)
-- [Limbaj](#Limbaj de programare)
 
 
 
 ## Introducere
 Acest proiect conține o aplicație ce se ocupă cu descărcarea paginilor web primite la input. Utilitarul primește la input un fișier cu un număr varabil de URL-uri, iar de la acest URL-uri, descarcă recursiv atât paginile respective, cât și refințele lor până la un nivel maxim de recusivitate setat implicit sau de către utilizator.
+<br />
 Alte functionalități oferite de aplicație sunt:
 -rularea multithreading
+<br />
 -autodetectare site-uri invalide/ site-uri excluse prin robots.txt
+<br />
 -crearea unui sitemap pentru fiecare pagină descarcată unde sunt reprezentate sub forma arborescentă toate fișierele descarcate
+<br />
 -cautarea în cadrul paginilor descărcate dupa cuvinte cheie
+<br />
 -filtrarea datelor
-
+<br />
 
 ## Parametrii aplicației
 ###
@@ -32,22 +37,28 @@ Alte functionalități oferite de aplicație sunt:
 - [x] -out setează fișierul de out pentru stocarea datelor de log
 - [x] -pattern search după o anumită sintaxă
 - [x] -maxsize setează dimensiunea maximă a datelor
-- [x] -extensons filtrează după extensie
+- [x] -extensions filtrează după extensie
 
 ## Formatul presetat al fișierului de configurare
 -threadsNumber = 4
+<br />
 -instance.delay = 20
+<br />
 -instance.depthLevel = 4
+<br />
 -instance.logFile =log.txt
--instance.logLevel = 3;
--instance.targetDirectory = "out";
+<br />
+-instance.logLevel = 3
+<br />
+-instance.targetDirectory =out
+<br />
 
 ## Limbaj
 :memo: Java -> SDK 15
 
 ## Echipa
 
-:trollface: Ghenea Claudiu-Florentin
+:trollface: Ghenea Claudiu-Florentin -Șăf
 <br />
 :trollface: Florea Vlad-George
 <br />
