@@ -2,9 +2,8 @@
 
 ## Content
 - [Descriere aplicație](#Introducere)
-- [Modul de rulare](#Modul de rulare)
 - [Parametrii aplicației](#Parametrii aplicației)
-- [Fisierul de configurare](#Formatul presetat al fișierului de configurare)
+- [Fisierul de configurare](#Parametrii presetati)
 - [Limbaj de programare](#Limbaj)
 - [Realizatori](#Echipa)
 
@@ -39,7 +38,7 @@ Alte functionalități oferite de aplicație sunt:
 - [x] -maxsize setează dimensiunea maximă a datelor
 - [x] -extensions filtrează după extensie
 
-## Formatul presetat al fișierului de configurare
+## Parametrii presetati
 -threadsNumber = 4
 <br />
 -instance.delay = 20
