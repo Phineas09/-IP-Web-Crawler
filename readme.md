@@ -2,8 +2,8 @@
 
 ## Content
 - [Descriere aplicație](#Introducere)
-- [Argumente](#Parametrii aplicației)
-- [Configuratie default](#Parametrii presetati)
+- [Argumente](#Parametrii)
+- [Configuratie default](#ConfigDefault)
 - [Limbaj de programare](#Limbaj)
 - [Realizatori](#Echipa)
 
@@ -24,7 +24,7 @@ Alte functionalități oferite de aplicație sunt:
 -filtrarea datelor
 <br />
 
-## Parametrii aplicației
+## Parametrii
 ###
 - [x] -in setează fișierul de intrare pentru îndeplinirea functionalității de download
 - [x] -config setează fișierul de configurare
@@ -38,7 +38,7 @@ Alte functionalități oferite de aplicație sunt:
 - [x] -maxsize setează dimensiunea maximă a datelor
 - [x] -extensions filtrează după extensie
 
-## Parametrii presetati
+## ConfigDefault
 -threadsNumber = 4
 <br />
 -instance.delay = 20
