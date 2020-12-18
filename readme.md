@@ -2,8 +2,8 @@
 
 ## Content
 - [Descriere aplicație](#Introducere)
-- [Parametrii aplicației](#Parametrii aplicației)
-- [Fisierul de configurare](#Parametrii presetati)
+- [Argumente](#Parametrii aplicației)
+- [Configuratie default](#Parametrii presetati)
 - [Limbaj de programare](#Limbaj)
 - [Realizatori](#Echipa)
 
