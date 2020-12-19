@@ -121,7 +121,7 @@ public class CrawlTask extends Task {
             return;
         }
         //If we are here, this means we have robots for this website!
-        Logger.getInstance().write("Parsing robots page " + robotsURL, 0, 3);
+        Logger.getInstance().write("Parsing robots page " + robotsURL, 2, 3);
         ArrayList<String> lineList = new ArrayList<>(Arrays.asList(robotsString.split("<newLine>")));
 
         int userAgentIndex = "User-agent: ".length();
@@ -150,7 +150,7 @@ public class CrawlTask extends Task {
         }
         if (rulesIndex == null) {
             /** robots.txt might be empty or have no viable entries. */
-            Logger.getInstance().write("No entries found in " + robotsURL, 0, 2);
+            Logger.getInstance().write("No entries found in " + robotsURL, 2, 2);
             return;
         }
         this.hasRobots = true;
@@ -176,7 +176,7 @@ public class CrawlTask extends Task {
                 break;
             }
         }
-        Logger.getInstance().write("Parsed successfully robots file: " + robotsURL, 0, 3);
+        Logger.getInstance().write("Parsed successfully robots file: " + robotsURL, 2, 3);
     }
 
     /**
@@ -238,7 +238,7 @@ public class CrawlTask extends Task {
             }
         }
         if(!isAllowed) {
-            Logger.getInstance().write("Access denied by /robots.txt for: " + targetUrlPath, 0, 2);
+            Logger.getInstance().write("Access denied by /robots.txt for: " + targetUrlPath, 2, 2);
         }
         return isAllowed;
     }
@@ -332,7 +332,7 @@ public class CrawlTask extends Task {
             URL url = new URL(webPage);
             //Logger.getInstance().write("Downloading web page " + this.url, 0, 3);
 
-            Logger.getInstance().write("Downloading web page " + webPage + " depth level -> " + this.taskId, 0, 3);
+            Logger.getInstance().write("Downloading web page " + webPage + " depth level -> " + this.taskId, 2, 3);
 
             BufferedReader siteReader =
                     new BufferedReader(new InputStreamReader(url.openStream()));
@@ -367,7 +367,7 @@ public class CrawlTask extends Task {
 
             FileOutputStream fileOutputStream = new FileOutputStream(this.targetPath);
             Logger.getInstance().write("Downloading binary file "
-                    + this.url + " depth level -> " + this.taskId, 0, 3);
+                    + this.url + " depth level -> " + this.taskId, 2, 3);
 
             byte[] dataBuffer = new byte[1024];
             int bytesRead;
