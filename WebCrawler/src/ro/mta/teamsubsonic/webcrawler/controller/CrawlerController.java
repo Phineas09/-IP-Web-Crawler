@@ -39,7 +39,7 @@ import java.util.List;
  */
 public class CrawlerController {
     //Index 0 is the program name
-    private static final Integer firstIndex=1;
+    private static final Integer firstIndex=0;
     //Delim for args, -
     private static final String delim="-";
 
@@ -88,7 +88,7 @@ public class CrawlerController {
         for(String str : args) {
             inLineString= String.join(" ",inLineString,str);
         }
-
+        inLineString = inLineString.substring(1);
         String[] argList = inLineString.split(delim);
 
         //Parse the args and inits the currentArgs object.
