@@ -59,9 +59,12 @@ public class SearchService implements Crawler {
             File[] listOfFiles = root.listFiles();
 
             for (File file : listOfFiles) {
-                if (file.isDirectory())
+                if (file.isDirectory()) {
                     //if the file is a directory, search for his files inside
+                    Logger instance = Logger.getInstance();
+                    instance.write(file.getName()+" is a directory, searching for files inside\n", 0,3);
                     getFiles(file.getAbsolutePath(), searchFiles);
+                }
                 else {
                     //get the file extension
                     int index = file.toString().lastIndexOf('.');
@@ -69,6 +72,8 @@ public class SearchService implements Crawler {
                         String extension = file.toString().substring(index + 1);
                         CrawlFile toBeAdded = new CrawlFile(extension, file.getName(), file.getAbsolutePath(), file.length());
                         searchFiles.add(toBeAdded);
+                        Logger instance = Logger.getInstance();
+                        instance.write("    "+file.getName()+" is a file \n", 0,3);
                     }
                 }
             }
@@ -84,7 +89,7 @@ public class SearchService implements Crawler {
     @Override
     public void run(){
         ArrayList<CrawlFile> searchFiles = new ArrayList<>();
-        String toBePrinted = new String();
+        String toBePrinted = new String("\n\n\nOutput:\n");
 
         getFiles(path,searchFiles);
 
@@ -120,7 +125,7 @@ public class SearchService implements Crawler {
             toBePrinted += "\n";
         }
         Logger instance = Logger.getInstance();
-        instance.write(toBePrinted,0);
+        instance.write(toBePrinted,0,3);
     }
     /**
      * SearchService class constructor
