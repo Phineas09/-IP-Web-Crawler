@@ -49,7 +49,7 @@ public class Logger {
                     this.outputFile.close();
                 File out = new File(filePath);
                 out.createNewFile();
-                outputFile = new FileWriter(out);
+                outputFile = new FileWriter(out, true);
             }
         }
         catch(_CrawlerException | IOException err) {
@@ -140,8 +140,10 @@ public class Logger {
                 case 1 -> outputFile.write(message + "\n");
                 case 2 -> {
                     System.out.println(message);
-                    if(outputFile != null)
+                    if(outputFile != null) {
                         outputFile.write(message + "\n");
+                        outputFile.flush();
+                    }
                 }
                 default -> throw new InputException("Unknown stdout provided!");
             }
