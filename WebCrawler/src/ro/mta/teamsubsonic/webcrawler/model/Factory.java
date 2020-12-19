@@ -131,7 +131,7 @@ public class Factory {
              */
                 String Path = args.get(0);
                 int retCode =checkPath(Path);
-                if(retCode!= ISAFILE){
+                if(retCode == ISAFILE){
                     if(retCode == ISADIR){
                         throw new InputException("The given path to site's root file is a directory:"+Path);
                     }
