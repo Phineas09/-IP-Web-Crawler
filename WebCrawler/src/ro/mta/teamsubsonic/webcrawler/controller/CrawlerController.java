@@ -14,6 +14,7 @@ import java.util.List;
 
 /**
  * CrawlerController
+ * Class responsible for parsing cli args and determining the type of service.
  *
  * @author Florea Vlad
  */
@@ -38,12 +39,20 @@ import java.util.List;
  * -extensons
  */
 public class CrawlerController {
-    //Index 0 is the program name
+    /**
+     * In java first arg is args[0]
+     */
     private static final Integer firstIndex=0;
-    //Delim for args, -
+
+
+    /**
+     * Delim for args, -
+     */
     private static final String delim="-";
 
-    //Args names definition
+    /**
+     * User defined args
+     */
     private static final String inArg="in";
     private static final String configArg="config";
     private static final String urlArg="url";
@@ -56,7 +65,9 @@ public class CrawlerController {
     private static final String maxSizeArg="maxsize";
     private static final String extensionsArg="extensions";
 
-    //Nested class to hold the current args
+    /**
+     * Nested class used to hold args values
+     */
     private class Args{
         public String service=null;
         public String inFile=null;
@@ -70,11 +81,14 @@ public class CrawlerController {
     }
     private Args currentArgs;
 
-    //Crawler object in use
+    /**
+     * The crawler service in use.
+     * Can be siteMap, Search or Crawl
+     */
     private Crawler crawlerService;
 
     /**
-     * ParseArgs method used by constructor
+     * Method used to parse args.
      * @param args --> CLI args
      * @return Crawler object
      *
@@ -84,14 +98,21 @@ public class CrawlerController {
         currentArgs.service = args[firstIndex];
 
         String inLineString="";
-        //Create inline string in order to split it by -
+        /**
+         * Joining every arg in a string
+         */
         for(String str : args) {
             inLineString= String.join(" ",inLineString,str);
         }
         inLineString = inLineString.substring(1);
+        /**
+         * Splitting the arg string on '-'
+         */
         String[] argList = inLineString.split(delim);
 
-        //Parse the args and inits the currentArgs object.
+        /**
+         * Parse every arg and add it to currentArgs
+         */
         for(String str: argList){
             String[] content = str.split(" ");
             if(content[0].equals(inArg)){
@@ -129,6 +150,9 @@ public class CrawlerController {
 
         }
         try {
+            /**
+             * Check the service type -> crawl,search, siteMap
+             */
 
             Configurations.getInstance(this.currentArgs.configFile);
             Logger.getInstance();
@@ -176,24 +200,31 @@ public class CrawlerController {
             else if(this.currentArgs.service.equals(searchArg)){
 
                 /**
-                 * Service type is SiteMap
+                 * Service type is Search
                  * Its parameters are:
                  * @param extensions -> String
                  * @param keyWords -> String
                  * @param maxSize -> String
                  * @param pattern -> String
+                 * @param path -> String
                  */
 
                 List<String> searchServiceArgs = new ArrayList<>();
 
-                //Converting List<String> extensions to a single string.
+                /**
+                 * Converting List<String> extensions to a single string.
+                 */
+
                 String extensions_str ="";
                 for(String ext : this.currentArgs.extensions){
                     extensions_str= String.join(" ",extensions_str,ext);
                 }
                 searchServiceArgs.add(extensions_str);
 
-                //Converting List<String> keywords to a single string.
+                /**
+                 * Converting List<String> keywords to a single string.
+                 */
+
                 String keyStr ="";
                 for(String key: this.currentArgs.keywords){
                     keyStr = String.join(" ",key,keyStr);
@@ -205,6 +236,11 @@ public class CrawlerController {
                 }
                 searchServiceArgs.add(currentArgs.maxSize);
                 searchServiceArgs.add(currentArgs.pattern);
+
+                if(this.currentArgs.inFile ==null){
+                    throw new InputException("Bad -in file, is null, cannot create SearchService");
+                }
+                searchServiceArgs.add(currentArgs.inFile);
 
                 return factory.createCrawler(SearchService.class,searchServiceArgs);
             }
@@ -221,10 +257,19 @@ public class CrawlerController {
 
 
     }
+
+    /**
+     * Class's Constructor
+     * @param args
+     */
     public CrawlerController(String[] args){
 
         crawlerService = this.ParseArgs(args);
     }
+
+    /**
+     * Execute method, calls run() method of CrawlerService
+     */
     public void execute(){
         try {
             if (this.crawlerService == null) {
@@ -236,6 +281,11 @@ public class CrawlerController {
             e.getMessage();
         }
     };
+
+    /**
+     * Method used to display messages
+     * @param val
+     */
     public void display(String val){
         Logger.getInstance().write(val,0);
 
