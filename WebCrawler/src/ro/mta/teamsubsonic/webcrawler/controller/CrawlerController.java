@@ -29,14 +29,14 @@ import java.util.List;
  * -in
  * -config
  * -url
- * -keywords
+ * -keyword
  * -crawl
  * -search
  * -sitemap
  * -out
  * -pattern
  * -maxsize
- * -extensons
+ * -extensions
  */
 public class CrawlerController {
     /**
@@ -56,7 +56,7 @@ public class CrawlerController {
     private static final String inArg="in";
     private static final String configArg="config";
     private static final String urlArg="url";
-    private static final String keywArg="keywords";
+    private static final String keywArg="keyword";
     private static final String crawlArg="crawl";
     private static final String searchArg="search";
     private static final String siteMapArg="sitemap";
@@ -74,7 +74,7 @@ public class CrawlerController {
         public String configFile=null;
         public String url=null;
         public String outFile=null;
-        public List<String> keywords=null;
+        public String keyword=null;
         public String pattern =null;
         public String maxSize =null;
         public List<String> extensions =null;
@@ -115,37 +115,35 @@ public class CrawlerController {
          */
         for(String str: argList){
             String[] content = str.split(" ");
-            if(content[0].equals(inArg)){
-                this.currentArgs.inFile=content[1];
-            }
-            else if(content[0].equals(configArg)){
-                this.currentArgs.configFile=content[1];
+            try {
+                if (content[0].equals(inArg)) {
+                    this.currentArgs.inFile = content[1];
+                } else if (content[0].equals(configArg)) {
+                    this.currentArgs.configFile = content[1];
 
-            }
-            else if(content[0].equals(urlArg)){
-                this.currentArgs.url=content[1];
+                } else if (content[0].equals(urlArg)) {
+                    this.currentArgs.url = content[1];
 
-            }
-            else if(content[0].equals(outArg)){
-                this.currentArgs.outFile = content[1];
-            }
-            else if(content[0].equals(patternArg)){
-                this.currentArgs.pattern=content[1];
-            }
-            else if(content[0].equals(maxSizeArg)){
-                this.currentArgs.maxSize = content[1];
-            }
-            else if(content[0].equals(extensionsArg)){
-                this.currentArgs.extensions = new ArrayList<>();
-                for(Integer i=1; i< content.length;i++){
-                    this.currentArgs.extensions.add(content[i]);
+                } else if (content[0].equals(outArg)) {
+                    this.currentArgs.outFile = content[1];
+                } else if (content[0].equals(patternArg)) {
+                    this.currentArgs.pattern = content[1];
+                } else if (content[0].equals(maxSizeArg)) {
+                    this.currentArgs.maxSize = content[1];
+                } else if (content[0].equals(extensionsArg)) {
+                    this.currentArgs.extensions = new ArrayList<>();
+                    for (Integer i = 1; i < content.length; i++) {
+                        this.currentArgs.extensions.add(content[i]);
+                    }
+                } else if (content[0].equals(keywArg)) {
+                    this.currentArgs.keyword = content[1];
                 }
             }
-            else if(content[0].equals(keywArg)){
-                this.currentArgs.keywords=new ArrayList<>();
-                for(Integer i=1; i< content.length;i++){
-                    this.currentArgs.keywords.add(content[i]);
-                }
+            catch (Exception e){
+                String msg ="Error while parsing args, probably the format is wrong:"+e.getMessage();
+                InputException err = new InputException(msg);
+                err.getMessage();
+                return null ;
             }
 
         }
@@ -203,7 +201,7 @@ public class CrawlerController {
                  * Service type is Search
                  * Its parameters are:
                  * @param extensions -> String
-                 * @param keyWords -> String
+                 * @param keyWord -> String
                  * @param maxSize -> String
                  * @param pattern -> String
                  * @param path -> String
@@ -216,24 +214,20 @@ public class CrawlerController {
                  */
 
                 String extensions_str ="";
-                for(String ext : this.currentArgs.extensions){
-                    extensions_str= String.join(" ",extensions_str,ext);
+                try {
+                    for (String ext : this.currentArgs.extensions) {
+                        extensions_str = String.join(" ", extensions_str, ext);
+                    }
                 }
+                catch (Exception e){
+                    extensions_str=null;
+                }
+
                 searchServiceArgs.add(extensions_str);
 
-                /**
-                 * Converting List<String> keywords to a single string.
-                 */
 
-                String keyStr ="";
-                for(String key: this.currentArgs.keywords){
-                    keyStr = String.join(" ",key,keyStr);
-                }
-                searchServiceArgs.add(keyStr);
 
-                if(this.currentArgs.maxSize==null){
-                    throw new InputException("Missing -maxsize arg for SearchService.");
-                }
+                searchServiceArgs.add(currentArgs.keyword);
                 searchServiceArgs.add(currentArgs.maxSize);
                 searchServiceArgs.add(currentArgs.pattern);
 
