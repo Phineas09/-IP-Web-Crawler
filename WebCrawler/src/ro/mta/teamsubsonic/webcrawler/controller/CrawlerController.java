@@ -36,6 +36,9 @@ import java.util.List;
  * -config
  * -url
  * -keyword
+ * -crawl
+ * -search
+ * -sitemap
  * -out
  * -pattern
  * -maxsize
