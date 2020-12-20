@@ -25,14 +25,17 @@ import java.util.List;
  * @param  search
  * @param sitemap
  * @param crawl
+ *
+ * CLI services are:
+ *   crawl
+ *   search
+ *   sitemap
+ * 
  * CLI args are:
  * -in
  * -config
  * -url
  * -keyword
- * -crawl
- * -search
- * -sitemap
  * -out
  * -pattern
  * -maxsize
