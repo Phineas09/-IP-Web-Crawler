@@ -38,19 +38,40 @@ Alte functionalități oferite de aplicație sunt:
 - [x] -maxsize setează dimensiunea maximă a datelor
 - [x] -extensions filtrează după extensie
 
+## Exemple de parametrii
+
+- search -in testFolder -maxsize 200000 -extensions pdf txt
+- search -in testFolder -maxsize 19000 -extensions txt
+- search -in testFolder/images -maxsize 200000 -extensions jpg
+- sitemap -in dbcenter.ro -out sitemap.txt -config Conf.cfg
+- sitemap -in dbcenter.ro -out sitemap.txt
+- crawl -in url.txt
+- crawl -in url.txt -config Conf.cfg
+
 ## ConfigDefault
--threadsNumber = 4
-<br />
--instance.delay = 20
-<br />
--instance.depthLevel = 4
-<br />
--instance.logFile =log.txt
-<br />
--instance.logLevel = 3
-<br />
--instance.targetDirectory =out
-<br />
+- instance.threadsNumber = 4
+- instance.delay = 20
+- instance.depthLevel = 4
+- instance.logFile =log.txt
+- instance.logLevel = 3
+- instance.targetDirectory = out
+- instance.configFileLocation = null
+- instance.robots = true;
+- instance.configFileLocation = config.cfg
+
+## Exemplu fișier de configurare
+
+Config.cfg
+
+```json
+threadsNumber=3
+delay=20
+depthLevel=3
+logFile=P:\log.txt
+targetDirectory=aleluia
+logLevel=3
+robots=true
+```
 
 ## Limbaj
 :memo: Java -> SDK 15
