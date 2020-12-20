@@ -153,20 +153,25 @@ public class Factory {
             /**
              * Parse the extensions
              */
-            List<String> extensions = Arrays.asList(args.get(0).split(extensionRegex));
-
+            List<String> extensions=null;
+            try {
+                extensions=Arrays.asList(args.get(0).split(extensionRegex));
+            }
+            catch (Exception e){
+                extensions=null;
+            }
             String keyword =args.get(1);
 
             /**
              * cast to integer
              */
-            Integer maxSize;
+            Long maxSize=null;
             try {
-                maxSize= Integer.parseInt(args.get(2));
+                maxSize= Long.parseLong(args.get(2));
             }
             catch (NumberFormatException e)
             {
-                throw new InputException("Bad maxSize. Not a number."+args.get(2));
+                maxSize=null;
             }
             String pattern = args.get(3);
             String path =args.get(4);

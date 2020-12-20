@@ -20,7 +20,7 @@ public class SearchService implements Crawler {
      */
     private List<String> fileExtensions;
     private String       keyword;
-    private long         maxSize;
+    private Long         maxSize;
     private String       pattern;
     private String       path;
     /**
@@ -95,7 +95,7 @@ public class SearchService implements Crawler {
 
         //for each file we will use our params to determine if the file will pass the tests
         for(CrawlFile file : searchFiles){
-            if(maxSize != 0){
+            if(maxSize != null){
                 if(maxSize < file.fileSize)
                     continue;
             }
@@ -135,7 +135,7 @@ public class SearchService implements Crawler {
      * @param _pattern Parameter where we use REGEX to see if the file corresponds
      * @param _path The path where we are going to search for files
      */
-    public SearchService(List<String> _fileExtensions, String _keyword, long _maxsize, String _pattern, String _path){
+    public SearchService(List<String> _fileExtensions, String _keyword, Long _maxsize, String _pattern, String _path){
         this.fileExtensions = new ArrayList<>();
         if(_fileExtensions != null)
             this.fileExtensions.addAll(_fileExtensions);
