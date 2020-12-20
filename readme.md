@@ -24,22 +24,25 @@ Alte functionalități oferite de aplicație sunt:
 -filtrarea datelor
 <br />
 
+## Servicii
+- [x] crawl furnizează funcția de crawl a aplicație.
+- [x] search caută în cadrul directorului dorit anumite fișiere conform  parametrilor doriți.
+- [x] sitemap accesează funcționalitatea de sitemap.
+
 ## Parametrii
-###
-- [x] -in setează fișierul de intrare pentru îndeplinirea functionalității de download
-- [x] -config setează fișierul de configurare
-- [x] -url trimite un url la input pentru descărcare
-- [x] -keywords filtrează dupa cuvinte cheie
-- [x] -crawl furnizează funcția de crawl a aplicație
-- [x] -search caută în cadrul informatiilor accesate anumite pattern-uri
-- [x] -sitemap accesează funcționalitatea de sitemap
-- [x] -out setează fișierul de out pentru stocarea datelor de log
-- [x] -pattern search după o anumită sintaxă
-- [x] -maxsize setează dimensiunea maximă a datelor
-- [x] -extensions filtrează după extensie
+- [x] -in path -setează calea de intrare. Poate fi un fișier sau un folder.
+- [x] -config file -calea către fișierul de configurare.
+- [x] -url address -setează url-ul dorit.
+- [x] -keyword word -argument folosit pentru a căuta după un cuvânt cheie.
+- [x] -out file -setează fișierul de output.
+- [x] -pattern regex -argument folosit pentru a căuta după o expresie regulată.
+- [x] -maxsize val -argument folosit pentru a căuta date până într-o anumită dimensiune (bytes).
+- [x] -extensions extensions list -listă de extensii folosite pentru a căuta fișierele dorite.
+
+## Utilizarea utilitarului
+./program serviciu parametrii
 
 ## Exemple de parametrii
-
 - search -in testFolder -maxsize 200000 -extensions pdf txt
 - search -in testFolder -maxsize 19000 -extensions txt
 - search -in testFolder/images -maxsize 200000 -extensions jpg
