@@ -29,14 +29,14 @@ import java.util.List;
  * -in
  * -config
  * -url
- * -keywords
+ * -keyword
  * -crawl
  * -search
  * -sitemap
  * -out
  * -pattern
  * -maxsize
- * -extensons
+ * -extensions
  */
 public class CrawlerController {
     /**
